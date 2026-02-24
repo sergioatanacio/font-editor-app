@@ -28,8 +28,14 @@ Este archivo compila toda la documentación funcional y técnica del proyecto.
 
 {{< include 17-snapshot-versionado.qmd >}}
 
+{{< include 18-matriz-errores.qmd >}}
+
 {{< include 20-aplicacion-casos-de-uso.qmd >}}
 
+{{< include 21-fsm-tablas.qmd >}}
+
 {{< include 30-infraestructura.qmd >}}
+
+{{< include 31-export-ttf-spec.qmd >}}
 
 {{< include 40-estrategia-pruebas.qmd >}}

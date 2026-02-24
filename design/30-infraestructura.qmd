@@ -1,59 +1,46 @@
-# Capa de Infraestructura
-
-## Responsabilidad
-
-Implementar los puertos con librerías concretas y APIs del navegador, sin contaminar dominio.
+# Capa de Infraestructura (Decision Final v1)
 
 ## Contexto de despliegue
 
-1. Web estática en GitHub Pages.
-2. Sin servidor propio.
-3. Toda operación en cliente.
+1. Web estatica en GitHub Pages.
+2. Sin backend.
+3. Toda operacion en navegador.
 
-## Adaptadores previstos (v1)
+## Stack final seleccionado
+
+1. Runtime: navegador moderno (ES2022).
+2. Export TTF: `opentype.js@1.3.4`.
+3. Parseo SVG path: `svg-pathdata@7.2.0`.
+4. Persistencia local: `IndexedDB` (via repositorio propio).
+5. IDs: `crypto.randomUUID()`.
+6. Empaquetado zip (opcional): `jszip@3.10.1`.
+
+## Decisiones cerradas
+
+1. `IndexedDB` es repositorio principal de proyectos.
+2. `localStorage` solo para preferencias UI no criticas.
+3. Formato de intercambio: JSON snapshot versionado.
+4. Formato de importacion v1: solo SVG.
+5. PDF fuera de alcance v1.
+
+## Adaptadores concretos
 
 1. `SvgTemplateExporterAdapter`
 2. `SvgGlyphVectorImporterAdapter`
-3. `TtfExporterAdapter` (basado en `opentype.js`)
-4. `LocalFileGatewayAdapter` (`File`, `Blob`, `FileReader`, `download`)
-5. `LocalProjectRepositoryAdapter` (`IndexedDB` o `localStorage`)
-6. `UuidIdGeneratorAdapter`
+3. `TtfExporterAdapter`
+4. `IndexedDbTypefaceRepositoryAdapter`
+5. `JsonProjectSerializerAdapter`
+6. `BrowserFileSystemGatewayAdapter`
+7. `WebCryptoIdGeneratorAdapter`
 
-## Persistencia offline
+## Contratos de robustez
 
-Opciones:
+1. Validar tipo/tamanio antes de parseo.
+2. Limite de seguridad por archivo: 20 MB.
+3. Timeouts de parseo en tareas largas con cancelacion.
+4. No evaluar scripts ni recursos externos embebidos.
 
-1. `IndexedDB` para proyectos grandes.
-2. `localStorage` solo para preferencias o estado ligero.
-3. Export/import manual de archivo de proyecto para backup.
-
-## Librerías candidatas
-
-1. `opentype.js` para exportación TTF.
-2. `svg-pathdata` o equivalente para parseo/normalización de paths SVG.
-3. `fonteditor-core` como apoyo de utilidades de fuentes (si se requiere).
-4. `JSZip` para exportación empaquetada (opcional).
-
-## Política de formatos
-
-1. Entrada oficial v1: `SVG`.
-2. Entrada `PDF`: fuera de alcance v1.
-3. Salida principal: `TTF`.
-4. Salidas opcionales futuras: `OTF`, `WOFF2`.
-
-## Seguridad y robustez en cliente
-
-1. Validar tamaño y tipo de archivo antes de parsear.
-2. Manejar errores de parseo sin bloquear UI.
-3. No ejecutar contenido activo embebido.
-4. Limitar uso de memoria en importaciones masivas.
-
-## Integración con UI
-
-La UI consume casos de uso de aplicación.  
-Infraestructura no expone reglas de negocio, solo implementaciones técnicas.
-
-## Estructura sugerida de carpetas
+## Estructura de carpetas cerrada
 
 ```text
 src/
@@ -62,7 +49,15 @@ src/
     application/
     infrastructure/
       adapters/
+        SvgTemplateExporterAdapter.ts
+        SvgGlyphVectorImporterAdapter.ts
+        TtfExporterAdapter.ts
       repositories/
-      mappers/
+        IndexedDbTypefaceRepositoryAdapter.ts
+      serializers/
+        JsonProjectSerializerAdapter.ts
       gateways/
+        BrowserFileSystemGatewayAdapter.ts
+      ids/
+        WebCryptoIdGeneratorAdapter.ts
 ```

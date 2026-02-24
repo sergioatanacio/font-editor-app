@@ -1,103 +1,125 @@
-# Capa de Aplicación y Casos de Uso
+# Capa de Aplicacion y Casos de Uso (Especificacion Cerrada)
 
-## Responsabilidad
+## Contrato comun `Result`
 
-Orquestar flujo, transacciones lógicas y coordinación entre dominio y puertos.
+```ts
+type AppError = {
+  code: string;
+  message: string;
+  severity: "error" | "warning";
+  context?: Record<string, unknown>;
+};
 
-No contiene reglas de negocio nucleares.
+type Result<T> =
+  | { ok: true; value: T; warnings?: AppError[] }
+  | { ok: false; error: AppError };
+```
 
-## Política de flujo: Máquinas de Estado
+## Convenciones de casos de uso
 
-Cada proceso complejo usa una máquina de estado finita para eliminar combinaciones inválidas.
+1. Entrada por `Input DTO` cerrado.
+2. Salida por `Result<Output DTO>`.
+3. Sin acceso directo a propiedades internas de entidades.
+4. Persistencia solo via puertos.
+5. Sin efectos secundarios fuera de puertos declarados.
 
-## Máquinas de estado definidas
+## Casos de uso v1 con DTOs
 
-### 1) Flujo de importación de plantilla completada
+### 1) `CreateTypeface`
 
-Estados:
+Input:
 
-1. `idle`
-2. `loadingFile`
-3. `parsing`
-4. `mapping`
-5. `validating`
-6. `applied`
-7. `error`
+1. `projectId: string`
+2. `familyName: string`
+3. `styleName: string`
+4. `unitsPerEm: number`
+5. `exportPreset: "minimal-latin" | "freeform"`
 
-Eventos:
+Output:
 
-1. `SELECT_FILE`
-2. `FILE_LOADED`
-3. `PARSE_OK`
-4. `PARSE_FAIL`
-5. `MAP_OK`
-6. `MAP_FAIL`
-7. `VALIDATION_OK`
-8. `VALIDATION_FAIL`
-9. `APPLY_OK`
-10. `APPLY_FAIL`
-11. `RESET`
+1. `typefaceId: string`
+2. `projectId: string`
 
-### 2) Flujo de exportación TTF
+Errores:
 
-Estados:
+1. `INVALID_INPUT`
+2. `INVALID_TYPEFACE_METADATA`
+3. `INVALID_FONT_METRICS`
 
-1. `idle`
-2. `validating`
-3. `exporting`
-4. `saving`
-5. `done`
-6. `error`
+### 2) `UpdateTypefaceMetadata`
 
-Eventos:
+Input: `typefaceId`, `familyName`, `styleName`, `designer?`, `version?`  
+Output: `typefaceId`, `updatedAt`
 
-1. `EXPORT_REQUESTED`
-2. `VALID_OK`
-3. `VALID_FAIL`
-4. `EXPORT_OK`
-5. `EXPORT_FAIL`
-6. `SAVE_OK`
-7. `SAVE_FAIL`
-8. `RESET`
+### 3) `UpdateTypefaceMetrics`
 
-## Casos de uso (v1)
+Input: `typefaceId`, `unitsPerEm`, `ascender`, `descender`, `lineGap`, `baseline`  
+Output: `typefaceId`, `updatedAt`
 
-1. `CreateTypeface`
-2. `UpdateTypefaceMetadata`
-3. `UpdateTypefaceMetrics`
-4. `GenerateTemplateSvg`
-5. `ImportCompletedTemplateSvg`
-6. `AssignUnicodeToGlyph`
-7. `ReplaceGlyphOutline`
-8. `UpdateGlyphMetrics`
-9. `ValidateTypefaceForExport`
-10. `ExportTypefaceToTtf`
-11. `SaveProjectToFile`
-12. `LoadProjectFromFile`
+### 4) `GenerateTemplateSvg`
 
-## Estructura típica de un caso de uso
+Input: `typefaceId`, `exportPreset`  
+Output: `filename`, `svgContent`, `mapping`
 
-1. Recibe comando/DTO.
-2. Carga estado necesario vía puertos.
-3. Invoca comportamiento de dominio.
-4. Ejecuta políticas/domain services.
-5. Persiste resultado.
-6. Devuelve `Result` de aplicación con errores tipados de aplicación.
+Puertos: `TemplateExporter`, `FileSystemGateway` (opcional guardado inmediato).
 
-## Domain Services usados desde aplicación
+### 5) `ImportCompletedTemplateSvg`
 
-1. `GlyphOutlineValidator`
-2. `TypefaceExportReadinessPolicy`
-3. `UnicodeMappingPolicy` (si aplica)
+Input: `typefaceId`, `svgContent`, `mapping`  
+Output: `typefaceId`, `importedCount`, `issues[]`, `isBlocking`
 
-## Errores de aplicación
+Puertos: `GlyphVectorImporter`, `TypefaceRepository`.
 
-1. `InvalidInputError`
-2. `ProjectNotFoundError`
-3. `FileReadError`
-4. `ImportFormatNotSupportedError`
-5. `UseCaseExecutionError`
+### 6) `AssignUnicodeToGlyph`
 
-## Regla de pureza
+Input: `typefaceId`, `glyphId`, `codePoint`  
+Output: `typefaceId`, `glyphId`
 
-La capa de aplicación no manipula propiedades internas de entidades; solo invoca métodos de dominio.
+### 7) `ReplaceGlyphOutline`
+
+Input: `typefaceId`, `glyphId`, `outline`  
+Output: `typefaceId`, `glyphId`
+
+### 8) `UpdateGlyphMetrics`
+
+Input: `typefaceId`, `glyphId`, `advanceWidth`, `leftSideBearing`  
+Output: `typefaceId`, `glyphId`
+
+### 9) `ValidateTypefaceForExport`
+
+Input: `typefaceId`, `exportPreset`  
+Output: `report` (`isReady`, `errors[]`, `warnings[]`)
+
+### 10) `ExportTypefaceToTtf`
+
+Input: `typefaceId`, `exportPreset`, `filename`  
+Output: `filename`, `byteLength`, `warnings[]`
+
+Puertos: `FontBinaryExporter`, `FileSystemGateway`.
+
+### 11) `SaveProjectToFile`
+
+Input: `projectId`, `filename`  
+Output: `filename`, `byteLength`
+
+Puertos: `ProjectSerializer`, `FileSystemGateway`.
+
+### 12) `LoadProjectFromFile`
+
+Input: `fileContent`  
+Output: `projectId`, `typefaceId`, `schemaVersion`
+
+Puertos: `ProjectSerializer`, `TypefaceRepository`.
+
+## Errores de aplicacion cerrados
+
+1. `INVALID_INPUT`
+2. `PROJECT_NOT_FOUND`
+3. `TYPEFACE_NOT_FOUND`
+4. `GLYPH_NOT_FOUND`
+5. `FILE_READ_ERROR`
+6. `FILE_SAVE_ERROR`
+7. `IMPORT_FORMAT_NOT_SUPPORTED`
+8. `IMPORT_BLOCKED_BY_VALIDATION`
+9. `EXPORT_BLOCKED_BY_READINESS`
+10. `USE_CASE_EXECUTION_ERROR`

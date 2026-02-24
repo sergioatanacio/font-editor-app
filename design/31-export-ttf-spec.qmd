@@ -1,0 +1,57 @@
+# Especificacion Cerrada: Exportador TTF v1
+
+## Objetivo
+
+Mapear `Typeface` de dominio a binario `TTF` de forma determinista.
+
+## Precondicion
+
+1. `ValidateTypefaceForExport` debe retornar `isReady=true`.
+
+## Orden de glifos en exportacion
+
+1. `.notdef` siempre indice 0.
+2. `space` despues de `.notdef` si existe.
+3. Resto ordenado por `codePoint` ascendente.
+4. Glifos sin unicode al final por `glyphId` ascendente.
+
+## Reglas de glifos especiales
+
+1. Si `.notdef` falta, crear outline vacio con `advanceWidth` por defecto.
+2. `space` puede tener outline vacio.
+3. Glifo no `space` con outline vacio: bloqueado por readiness.
+
+## Mapeo de metricas
+
+1. `unitsPerEm` -> `head.unitsPerEm`.
+2. `ascender` -> `hhea.ascender`.
+3. `descender` -> `hhea.descender`.
+4. `lineGap` -> `hhea.lineGap`.
+5. `advanceWidth` y `leftSideBearing` -> `hmtx`.
+6. `baseline` no se exporta como tabla; debe ser 0 en validacion.
+
+## Mapeo de nombres (name table)
+
+1. `familyName` -> NameID 1.
+2. `styleName` -> NameID 2.
+3. Full name = `familyName + styleName` -> NameID 4.
+4. Version -> NameID 5 (`Version x.y`).
+5. PostScript name -> NameID 6 (sin espacios).
+
+## Conversion de outline
+
+1. Comandos admitidos: `M`, `L`, `Q`, `C`, `Z`.
+2. Coordenadas ya normalizadas en espacio tipografico.
+3. Contornos deben llegar cerrados.
+
+## Precision y redondeo
+
+1. Coordenadas a entero con `round()`.
+2. Metricas enteras.
+3. No usar normalizacion adicional en exportador.
+
+## Salida del adaptador
+
+1. `Uint8Array` binario TTF.
+2. `byteLength > 0`.
+3. Errores tecnicos mapeados a `USE_CASE_EXECUTION_ERROR` con `context.cause`.

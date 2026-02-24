@@ -1,0 +1,54 @@
+# FSM Cerradas: Transiciones, Guards y Actions
+
+## Convenciones
+
+1. Evento invalido en estado actual: no cambia estado.
+2. Todo error operacional transita a `error`.
+3. Solo `RESET` sale de `error`.
+
+## FSM 1: ImportCompletedTemplateSvg
+
+### Tabla de transiciones
+
+| Estado actual | Evento | Guard | Action | Estado siguiente |
+|---|---|---|---|---|
+| `idle` | `SELECT_FILE` | archivo seleccionado | cargar archivo | `loadingFile` |
+| `loadingFile` | `FILE_LOADED` | contenido no vacio | parse XML | `parsing` |
+| `loadingFile` | `PARSE_FAIL` | - | registrar issue | `error` |
+| `parsing` | `PARSE_OK` | schema compatible | construir mapping runtime | `mapping` |
+| `parsing` | `PARSE_FAIL` | - | registrar issue | `error` |
+| `mapping` | `MAP_OK` | sin faltantes bloqueantes | validar geometria | `validating` |
+| `mapping` | `MAP_FAIL` | - | registrar issue | `error` |
+| `validating` | `VALIDATION_OK` | `isBlocking=false` | aplicar outlines al agregado | `applied` |
+| `validating` | `VALIDATION_FAIL` | `isBlocking=true` | no aplicar cambios | `error` |
+| `applied` | `RESET` | - | limpiar contexto | `idle` |
+| `error` | `RESET` | - | limpiar contexto | `idle` |
+
+### Payload minimo de eventos
+
+1. `SELECT_FILE`: `filename`
+2. `FILE_LOADED`: `svgContent`
+3. `PARSE_OK`: `templateMapping`
+4. `PARSE_FAIL`: `issues[]`
+5. `VALIDATION_FAIL`: `issues[]`, `isBlocking`
+
+## FSM 2: ExportTypefaceToTtf
+
+### Tabla de transiciones
+
+| Estado actual | Evento | Guard | Action | Estado siguiente |
+|---|---|---|---|---|
+| `idle` | `EXPORT_REQUESTED` | typeface existe | ejecutar readiness | `validating` |
+| `validating` | `VALID_OK` | `report.isReady=true` | exportar binario | `exporting` |
+| `validating` | `VALID_FAIL` | `report.isReady=false` | devolver errores | `error` |
+| `exporting` | `EXPORT_OK` | bytes no vacios | guardar archivo | `saving` |
+| `exporting` | `EXPORT_FAIL` | - | registrar fallo | `error` |
+| `saving` | `SAVE_OK` | - | devolver resultado | `done` |
+| `saving` | `SAVE_FAIL` | - | registrar fallo | `error` |
+| `done` | `RESET` | - | limpiar contexto | `idle` |
+| `error` | `RESET` | - | limpiar contexto | `idle` |
+
+### Idempotencia
+
+1. Repetir `EXPORT_REQUESTED` fuera de `idle`: ignorar.
+2. Repetir `RESET`: mantener `idle`.
