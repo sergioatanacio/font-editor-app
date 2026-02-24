@@ -1,0 +1,59 @@
+# Capa de Dominio (General)
+
+## Responsabilidad
+
+Modelar tipografía y sus reglas invariantes:
+
+1. Identidad de fuente y glifos.
+2. Métricas globales y por glifo.
+3. Geometría vectorial de contornos.
+4. Reglas de mapeo Unicode.
+5. Criterios de exportabilidad.
+
+## Alcance del dominio
+
+Incluye:
+
+1. Aggregate Root: `Typeface`.
+2. Entity principal: `Glyph`.
+3. Value Objects de identidad, métricas, geometría y metadata.
+4. Domain Services para validaciones transversales.
+5. Eventos de dominio (opcional en v1, diseñados desde inicio).
+
+No incluye:
+
+1. Parseo de SVG/PDF.
+2. Generación binaria TTF.
+3. Persistencia de archivos.
+4. Framework UI.
+
+## Reglas estructurales
+
+1. Constructores privados.
+2. Fábricas `create`.
+3. Sin setters.
+4. Inmutabilidad por retorno de nuevas instancias.
+5. Errores tipados que extienden `DomainError`.
+6. Sin dependencias de infraestructura.
+
+## Estrategia de control de flujo
+
+Se evita lógica dispersa con `if` anidados usando máquinas de estado en los procesos de aplicación, mientras el dominio protege invariantes del modelo.
+
+## Domain Services (criterio)
+
+Se usa Domain Service cuando:
+
+1. Una regla involucra varios objetos de dominio.
+2. No pertenece naturalmente a una sola entidad/agregado.
+3. Debe permanecer libre de infraestructura.
+
+## Invariantes globales v1
+
+1. `Typeface` no permite Unicode duplicado.
+2. `familyName` y `styleName` obligatorios.
+3. `unitsPerEm` entero entre 16 y 16384.
+4. `baseline` fijo en 0.
+5. `GlyphOutline` con contornos cerrados (`Z` obligatorio).
+6. Glifos de tipo `space` pueden tener outline vacío.
+7. `advanceWidth >= 0`.

@@ -1,0 +1,103 @@
+# Capa de Aplicación y Casos de Uso
+
+## Responsabilidad
+
+Orquestar flujo, transacciones lógicas y coordinación entre dominio y puertos.
+
+No contiene reglas de negocio nucleares.
+
+## Política de flujo: Máquinas de Estado
+
+Cada proceso complejo usa una máquina de estado finita para eliminar combinaciones inválidas.
+
+## Máquinas de estado definidas
+
+### 1) Flujo de importación de plantilla completada
+
+Estados:
+
+1. `idle`
+2. `loadingFile`
+3. `parsing`
+4. `mapping`
+5. `validating`
+6. `applied`
+7. `error`
+
+Eventos:
+
+1. `SELECT_FILE`
+2. `FILE_LOADED`
+3. `PARSE_OK`
+4. `PARSE_FAIL`
+5. `MAP_OK`
+6. `MAP_FAIL`
+7. `VALIDATION_OK`
+8. `VALIDATION_FAIL`
+9. `APPLY_OK`
+10. `APPLY_FAIL`
+11. `RESET`
+
+### 2) Flujo de exportación TTF
+
+Estados:
+
+1. `idle`
+2. `validating`
+3. `exporting`
+4. `saving`
+5. `done`
+6. `error`
+
+Eventos:
+
+1. `EXPORT_REQUESTED`
+2. `VALID_OK`
+3. `VALID_FAIL`
+4. `EXPORT_OK`
+5. `EXPORT_FAIL`
+6. `SAVE_OK`
+7. `SAVE_FAIL`
+8. `RESET`
+
+## Casos de uso (v1)
+
+1. `CreateTypeface`
+2. `UpdateTypefaceMetadata`
+3. `UpdateTypefaceMetrics`
+4. `GenerateTemplateSvg`
+5. `ImportCompletedTemplateSvg`
+6. `AssignUnicodeToGlyph`
+7. `ReplaceGlyphOutline`
+8. `UpdateGlyphMetrics`
+9. `ValidateTypefaceForExport`
+10. `ExportTypefaceToTtf`
+11. `SaveProjectToFile`
+12. `LoadProjectFromFile`
+
+## Estructura típica de un caso de uso
+
+1. Recibe comando/DTO.
+2. Carga estado necesario vía puertos.
+3. Invoca comportamiento de dominio.
+4. Ejecuta políticas/domain services.
+5. Persiste resultado.
+6. Devuelve `Result` de aplicación con errores tipados de aplicación.
+
+## Domain Services usados desde aplicación
+
+1. `GlyphOutlineValidator`
+2. `TypefaceExportReadinessPolicy`
+3. `UnicodeMappingPolicy` (si aplica)
+
+## Errores de aplicación
+
+1. `InvalidInputError`
+2. `ProjectNotFoundError`
+3. `FileReadError`
+4. `ImportFormatNotSupportedError`
+5. `UseCaseExecutionError`
+
+## Regla de pureza
+
+La capa de aplicación no manipula propiedades internas de entidades; solo invoca métodos de dominio.

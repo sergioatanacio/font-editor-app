@@ -1,0 +1,25 @@
+---
+title: "Diseño General - Editor Tipográfico Offline"
+format: html
+toc: true
+number-sections: true
+lang: es
+---
+
+# Documento Maestro
+
+Este archivo compila toda la documentación funcional y técnica del proyecto.
+
+{{< include 00-proyecto-general.qmd >}}
+
+{{< include 10-dominio-general.qmd >}}
+
+{{< include 11-dominio-agregados.qmd >}}
+
+{{< include 12-dominio-value-objects.qmd >}}
+
+{{< include 13-dominio-puertos.qmd >}}
+
+{{< include 20-aplicacion-casos-de-uso.qmd >}}
+
+{{< include 30-infraestructura.qmd >}}

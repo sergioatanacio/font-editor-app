@@ -1,0 +1,68 @@
+# Capa de Infraestructura
+
+## Responsabilidad
+
+Implementar los puertos con librerías concretas y APIs del navegador, sin contaminar dominio.
+
+## Contexto de despliegue
+
+1. Web estática en GitHub Pages.
+2. Sin servidor propio.
+3. Toda operación en cliente.
+
+## Adaptadores previstos (v1)
+
+1. `SvgTemplateExporterAdapter`
+2. `SvgGlyphVectorImporterAdapter`
+3. `TtfExporterAdapter` (basado en `opentype.js`)
+4. `LocalFileGatewayAdapter` (`File`, `Blob`, `FileReader`, `download`)
+5. `LocalProjectRepositoryAdapter` (`IndexedDB` o `localStorage`)
+6. `UuidIdGeneratorAdapter`
+
+## Persistencia offline
+
+Opciones:
+
+1. `IndexedDB` para proyectos grandes.
+2. `localStorage` solo para preferencias o estado ligero.
+3. Export/import manual de archivo de proyecto para backup.
+
+## Librerías candidatas
+
+1. `opentype.js` para exportación TTF.
+2. `svg-pathdata` o equivalente para parseo/normalización de paths SVG.
+3. `fonteditor-core` como apoyo de utilidades de fuentes (si se requiere).
+4. `JSZip` para exportación empaquetada (opcional).
+
+## Política de formatos
+
+1. Entrada oficial v1: `SVG`.
+2. Entrada `PDF`: fuera de alcance v1.
+3. Salida principal: `TTF`.
+4. Salidas opcionales futuras: `OTF`, `WOFF2`.
+
+## Seguridad y robustez en cliente
+
+1. Validar tamaño y tipo de archivo antes de parsear.
+2. Manejar errores de parseo sin bloquear UI.
+3. No ejecutar contenido activo embebido.
+4. Limitar uso de memoria en importaciones masivas.
+
+## Integración con UI
+
+La UI consume casos de uso de aplicación.  
+Infraestructura no expone reglas de negocio, solo implementaciones técnicas.
+
+## Estructura sugerida de carpetas
+
+```text
+src/
+  context/font-design/
+    domain/
+    application/
+    infrastructure/
+      adapters/
+      repositories/
+      mappers/
+      gateways/
+```

@@ -1,0 +1,55 @@
+# Proyecto General
+
+## Visión
+
+Aplicación web offline, desplegable en GitHub Pages, para diseñar tipografías a partir de una plantilla vectorial.  
+El usuario exporta una plantilla SVG con celdas por glifo, dibuja en Illustrator/Inkscape y vuelve a importar el archivo para generar una fuente `TTF` sin rasterizar ni re-vectorizar.
+
+## Problema que resuelve
+
+Los flujos tradicionales de "imagen -> vectorización automática" alteran curvas, nodos y proporciones originales.  
+Este proyecto preserva el vector del diseñador como fuente de verdad.
+
+## Objetivos funcionales
+
+1. Crear proyecto tipográfico con metadatos y métricas base.
+2. Generar plantilla editable con mapa de glifos.
+3. Importar SVG (v1) y reconocer glifos por celda.
+4. Validar integridad geométrica y reglas tipográficas.
+5. Exportar `TTF`.
+6. Guardar/abrir proyecto localmente sin backend.
+
+## Objetivos técnicos
+
+1. Arquitectura hexagonal.
+2. Dominio rico con invariantes fuertes.
+3. Máquinas de estado finitas para flujos críticos.
+4. Capa de aplicación basada en casos de uso.
+5. Infraestructura desacoplada vía puertos.
+6. Funcionamiento 100% en navegador sin servidor.
+
+## Restricciones
+
+1. Sin API remota ni base de datos servidor.
+2. Sin rasterización para extraer glifos.
+3. El dominio no depende de librerías externas.
+4. El formato principal de plantilla en v1 es `SVG`.
+
+## Decisión SVG vs PDF
+
+Para v1 se define `SVG` como formato oficial de importación/exportación de plantilla por:
+
+1. Parseo directo de paths.
+2. Estructura textual y validable.
+3. Menor ambigüedad que PDF para identificar celdas/glifos.
+4. Mejor trazabilidad para depuración local.
+
+`PDF` queda como extensión futura, condicionada a poder extraer paths vectoriales puros sin pérdida semántica.
+
+## Principios de diseño
+
+1. Un solo estado válido por flujo (máquinas de estado).
+2. Reglas de negocio en dominio, no en UI.
+3. Dominio orientado a intención tipográfica.
+4. Adaptadores para librerías y formatos.
+5. Errores explícitos y tipados.

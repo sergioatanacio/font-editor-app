@@ -1,0 +1,74 @@
+# Dominio: Agregados y Entidades
+
+## Aggregate Root: `Typeface`
+
+### Estado
+
+1. `id: TypefaceId`
+2. `metadata: TypefaceMetadata`
+3. `metrics: FontMetrics`
+4. `glyphs: ReadonlyMap<GlyphId, Glyph>`
+
+### Métodos cerrados (v1)
+
+1. `addGlyph(glyph: Glyph): Typeface`
+2. `replaceGlyph(glyph: Glyph): Typeface`
+3. `removeGlyph(glyphId: GlyphId): Typeface`
+4. `assignUnicode(glyphId: GlyphId, codePoint: UnicodeCodePoint): Typeface`
+5. `replaceGlyphOutline(glyphId: GlyphId, outline: GlyphOutline): Typeface`
+6. `changeGlyphMetrics(glyphId: GlyphId, metrics: GlyphMetrics): Typeface`
+7. `changeMetadata(metadata: TypefaceMetadata): Typeface`
+8. `changeFontMetrics(metrics: FontMetrics): Typeface`
+9. `validateExportReadiness(): ExportReadinessReport`
+
+### Invariantes del agregado
+
+1. No duplicar `GlyphId`.
+2. No duplicar `UnicodeCodePoint`.
+3. `metadata` válido y no vacío en campos obligatorios.
+4. `metrics` válidas.
+5. Glifos requeridos por política de exportación.
+
+## Entity: `Glyph`
+
+### Estado
+
+1. `id: GlyphId`
+2. `name: GlyphName`
+3. `unicode?: UnicodeCodePoint`
+4. `outline: GlyphOutline`
+5. `metrics: GlyphMetrics`
+6. `kind: GlyphKind` (`base | mark | ligature | space`)
+7. `status: GlyphStatus` (`empty | outlined`)
+
+### Métodos cerrados (v1)
+
+1. `replaceOutline(outline: GlyphOutline): Glyph`
+2. `clearOutline(): Glyph`
+3. `assignUnicode(codePoint: UnicodeCodePoint): Glyph`
+4. `removeUnicode(): Glyph`
+5. `changeMetrics(metrics: GlyphMetrics): Glyph`
+6. `rename(name: GlyphName): Glyph`
+7. `changeKind(kind: GlyphKind): Glyph`
+8. `markOutlined(): Glyph`
+9. `markEmpty(): Glyph`
+
+### Invariantes de entidad
+
+1. `name` no vacío.
+2. Si `kind !== space` y `status = outlined`, `outline` no vacío.
+3. Si `kind = space`, `outline` puede ser vacío.
+4. `advanceWidth >= 0`.
+
+## Errores de dominio (catálogo v1)
+
+1. `DomainError`
+2. `DuplicateGlyphIdError`
+3. `DuplicateUnicodeCodePointError`
+4. `GlyphNotFoundError`
+5. `InvalidGlyphOutlineError`
+6. `InvalidGlyphMetricsError`
+7. `InvalidFontMetricsError`
+8. `InvalidUnicodeCodePointError`
+9. `InvalidGlyphNameError`
+10. `InvalidTypefaceMetadataError`
