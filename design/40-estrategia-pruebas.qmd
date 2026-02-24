@@ -1,0 +1,63 @@
+# Estrategia de Pruebas por Capa
+
+## Objetivo
+
+Asegurar consistencia de dominio, estabilidad de flujos y preservacion de vectores.
+
+## Piramide de pruebas v1
+
+1. Unitarias de dominio (alta prioridad).
+2. Integracion de casos de uso + puertos fake.
+3. Integracion de adaptadores SVG/TTF.
+4. Golden tests de exportacion TTF.
+5. Pruebas de FSM (transiciones).
+
+## Dominio: unit tests
+
+1. Value Objects validos e invalidos.
+2. Invariantes de `Glyph`.
+3. Invariantes de `Typeface`.
+4. Errores tipados esperados.
+5. `TypefaceExportReadinessPolicy`.
+
+## Aplicacion: use cases
+
+1. Flujo feliz por cada caso de uso.
+2. Errores de entrada invalidos.
+3. Orquestacion correcta con puertos mocked.
+4. No mutacion directa de entidades.
+
+## FSM: pruebas de transiciones
+
+1. Todas las transiciones validas.
+2. Eventos invalidos no cambian estado.
+3. Estados terminales se reinician solo con `RESET`.
+4. Nunca hay estados imposibles.
+
+## Infraestructura: importador SVG
+
+1. Fixtures de SVG valido.
+2. Fixtures con errores de schema.
+3. Paths con transforms acumulados.
+4. Celdas vacias y celdas faltantes.
+5. Validacion de comandos no soportados.
+
+## Infraestructura: exportador TTF
+
+1. Exporta binario no vacio.
+2. Metadata de fuente correcta.
+3. Conteo de glifos esperado.
+4. Golden tests: hash/tamanio esperado con tolerancia.
+
+## Persistencia snapshot
+
+1. Roundtrip serialize/deserialize.
+2. Carga de versiones antiguas migrables.
+3. Rechazo de snapshots corruptos.
+
+## Criterios de aceptacion v1
+
+1. Sin fallos en invariantes de dominio.
+2. Importacion SVG sin perdida de mapeo de celdas.
+3. Exportacion `TTF` bloqueada cuando readiness falla.
+4. Proyectos guardados cargan sin corrupcion.

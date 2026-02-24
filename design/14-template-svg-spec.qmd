@@ -1,0 +1,101 @@
+# Especificacion Cerrada: Template SVG
+
+## Objetivo
+
+Definir un contrato estable para exportar e importar plantillas SVG sin ambiguedad.
+
+## Version de contrato
+
+1. `templateSchemaVersion = "1.0.0"`
+2. Cualquier cambio incompatible incrementa major.
+
+## Estructura raiz requerida
+
+1. Elemento raiz `svg` con `viewBox`.
+2. Grupo raiz `g` con `id="ctf-template-root"`.
+3. Metadatos en `metadata` JSON serializado.
+
+## Metadata requerida
+
+```json
+{
+  "templateSchemaVersion": "1.0.0",
+  "typefaceId": "tf_...",
+  "unitsPerEm": 1000,
+  "grid": {
+    "cols": 10,
+    "rows": 12,
+    "cellWidth": 120,
+    "cellHeight": 120,
+    "padding": 12
+  },
+  "glyphCount": 96
+}
+```
+
+## Contrato por celda
+
+Cada celda de glifo es un `g` con:
+
+1. `id="cell-{glyphId}"`
+2. `data-role="glyph-cell"`
+3. `data-glyph-id`
+4. `data-glyph-name`
+5. `data-codepoint` (opcional)
+6. `data-kind` (`base|mark|ligature|space`)
+7. `data-slot-index` (entero)
+
+## Contenido interno por celda
+
+Cada celda tiene subgrupos fijos:
+
+1. `g[data-role="guides"]` para guias visuales.
+2. `g[data-role="drawing"]` para paths del usuario.
+3. `g[data-role="label"]` para texto de referencia.
+
+Regla: solo `drawing` se lee al importar outlines.
+
+## Reglas de edicion permitidas para usuario
+
+1. Puede agregar/editar/eliminar `path` dentro de `drawing`.
+2. Puede usar varios `path` por celda.
+3. No debe renombrar ni borrar atributos `data-*` de celda.
+4. No debe mover nodos fuera de su celda.
+5. No debe cambiar `templateSchemaVersion`.
+
+## Reglas de rechazo de importacion
+
+Se rechaza archivo si:
+
+1. Falta `ctf-template-root`.
+2. Falta metadata requerida.
+3. Hay celdas sin `data-glyph-id`.
+4. Hay `glyphId` duplicados.
+5. `templateSchemaVersion` incompatible.
+
+## Tolerancias de importacion
+
+1. Si una celda no tiene paths en `drawing`, se considera glifo vacio.
+2. Paths extra fuera de celdas se ignoran.
+3. Celdas desconocidas se reportan como warning.
+4. Celdas requeridas faltantes son error bloqueante.
+
+## Tipos de dominio conectados
+
+1. `TemplateSpec`
+2. `TemplateMapping`
+3. `ImportedGlyphBatch`
+
+### `TemplateSpec` minimo
+
+1. `typefaceId`
+2. `glyphSlots[]` con `glyphId`, `glyphName`, `codePoint?`, `kind`, `slotIndex`
+3. `grid`
+4. `unitsPerEm`
+
+### `TemplateMapping` minimo
+
+1. `schemaVersion`
+2. `slotByGlyphId`
+3. `requiredGlyphIds`
+4. `optionalGlyphIds`

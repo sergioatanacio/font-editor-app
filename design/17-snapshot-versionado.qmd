@@ -1,0 +1,65 @@
+# Especificacion Cerrada: Snapshot y Versionado de Proyecto
+
+## Objetivo
+
+Garantizar persistencia offline estable y migrable entre versiones.
+
+## Snapshot canonico v1
+
+`TypefaceProjectSnapshot`:
+
+1. `schemaVersion: string`
+2. `projectId: string`
+3. `typeface: {...}`
+4. `templateMapping: {...}`
+5. `exportPreset: "minimal-latin" | "freeform"`
+6. `createdAt: string` (ISO-8601)
+7. `updatedAt: string` (ISO-8601)
+
+## Version inicial
+
+1. `schemaVersion = "1.0.0"`
+
+## Reglas de serializacion
+
+1. JSON UTF-8.
+2. Orden estable de claves para diffs.
+3. No incluir campos derivados cacheables.
+4. Guardar solo estado necesario para reconstruccion.
+
+## Reglas de deserializacion
+
+1. Validar `schemaVersion` obligatorio.
+2. Validar estructura minima.
+3. Rechazar si faltan campos obligatorios.
+4. Rechazar si valores invalidos rompen invariantes.
+
+## Estrategia de migraciones
+
+1. Migraciones puras por pasos: `1.0.0 -> 1.1.0 -> 1.2.0`.
+2. Cada migracion recibe JSON previo y devuelve JSON objetivo.
+3. No saltar pasos.
+4. Mantener historial de migradores.
+
+## Contrato de migrador
+
+1. `canMigrate(from: string, to: string): boolean`
+2. `migrate(raw: unknown): unknown`
+
+## Errores de snapshot
+
+1. `UnsupportedSchemaVersionError`
+2. `InvalidSnapshotFormatError`
+3. `SnapshotMigrationError`
+4. `SnapshotInvariantViolationError`
+
+## Politica de compatibilidad
+
+1. Cambios backward-compatible: incrementar minor/patch.
+2. Cambios incompatibles: incrementar major.
+3. V1 soporta lectura de misma major solamente.
+
+## Almacenamiento local
+
+1. Repositorio principal: IndexedDB.
+2. Export/import manual `.json` como backup interoperable.

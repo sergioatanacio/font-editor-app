@@ -2,7 +2,7 @@
 
 ## Objetivo
 
-Aislar el dominio de librerías, UI y detalles técnicos.
+Aislar el dominio de librerias, UI y detalles tecnicos.
 
 ## Puertos de salida (driven adapters)
 
@@ -12,10 +12,10 @@ Aislar el dominio de librerías, UI y detalles técnicos.
 4. `FontBinaryExporter`
 5. `ProjectSerializer`
 6. `FileSystemGateway`
-7. `Clock` (opcional, versionado/fechas)
+7. `Clock` (opcional)
 8. `IdGenerator`
 
-## Contratos mínimos
+## Contratos minimos
 
 ### `TypefaceRepository`
 
@@ -30,7 +30,7 @@ Aislar el dominio de librerías, UI y detalles técnicos.
 
 1. `importFromSvg(input: string, mapping: TemplateMapping): Promise<ImportedGlyphBatch>`
 
-Nota: En v1 se importa solo SVG. El soporte PDF se define fuera de este contrato inicial.
+Nota: en v1 se importa solo SVG.
 
 ### `FontBinaryExporter`
 
@@ -46,7 +46,30 @@ Nota: En v1 se importa solo SVG. El soporte PDF se define fuera de este contrato
 1. `saveFile(filename: string, content: Blob | Uint8Array | string): Promise<void>`
 2. `pickFile(accept: string[]): Promise<PickedFile | null>`
 
-## Eventos de dominio (diseño v1)
+## Tipos de contrato cerrados (v1)
+
+### `TemplateSpec`
+
+1. `templateSchemaVersion: "1.0.0"`
+2. `typefaceId: string`
+3. `unitsPerEm: number`
+4. `grid: { cols: number; rows: number; cellWidth: number; cellHeight: number; padding: number }`
+5. `glyphSlots: Array<{ glyphId: string; glyphName: string; codePoint?: number; kind: "base" | "mark" | "ligature" | "space"; slotIndex: number }>`
+
+### `TemplateMapping`
+
+1. `schemaVersion: "1.0.0"`
+2. `slotByGlyphId: Record<string, number>`
+3. `requiredGlyphIds: string[]`
+4. `optionalGlyphIds: string[]`
+
+### `ImportedGlyphBatch`
+
+1. `items: Array<{ glyphId: string; outline: GlyphOutline | null; bounds?: { xMin: number; yMin: number; xMax: number; yMax: number }; issues: string[] }>`
+2. `globalIssues: string[]`
+3. `isBlocking: boolean`
+
+## Eventos de dominio (disenio v1)
 
 1. `GlyphAddedToTypeface`
 2. `GlyphOutlineReplaced`
@@ -57,4 +80,4 @@ Nota: En v1 se importa solo SVG. El soporte PDF se define fuera de este contrato
 
 ## Regla de arquitectura
 
-Los puertos se definen en dominio/aplicación y sus implementaciones viven en infraestructura.
+Los puertos se definen en dominio/aplicacion y sus implementaciones viven en infraestructura.

@@ -20,6 +20,16 @@ Este archivo compila toda la documentación funcional y técnica del proyecto.
 
 {{< include 13-dominio-puertos.qmd >}}
 
+{{< include 14-template-svg-spec.qmd >}}
+
+{{< include 15-normalizacion-geometrica.qmd >}}
+
+{{< include 16-export-readiness-policy.qmd >}}
+
+{{< include 17-snapshot-versionado.qmd >}}
+
 {{< include 20-aplicacion-casos-de-uso.qmd >}}
 
 {{< include 30-infraestructura.qmd >}}
+
+{{< include 40-estrategia-pruebas.qmd >}}

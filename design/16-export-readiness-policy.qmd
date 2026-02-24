@@ -1,0 +1,95 @@
+# Especificacion Cerrada: Export Readiness Policy
+
+## Objetivo
+
+Definir criterios exactos para permitir o bloquear exportacion `TTF`.
+
+## Salida de politica
+
+`ExportReadinessReport`:
+
+1. `isReady: boolean`
+2. `errors: ExportIssue[]`
+3. `warnings: ExportIssue[]`
+
+Regla: `isReady = errors.length === 0`.
+
+## Severidades
+
+1. `error`: bloquea exportacion.
+2. `warning`: permite exportacion.
+
+## Presets de requerimientos v1
+
+1. `minimal-latin`
+2. `freeform`
+
+### `minimal-latin` requiere
+
+1. `.notdef`
+2. `space` (U+0020)
+3. `A-Z`
+4. `a-z`
+5. `0-9`
+
+### `freeform` requiere
+
+1. `.notdef`
+2. al menos 1 glifo no vacio adicional.
+
+## Reglas bloqueantes (errors)
+
+1. `MISSING_FAMILY_NAME`
+2. `MISSING_STYLE_NAME`
+3. `INVALID_FONT_METRICS`
+4. `NO_GLYPHS`
+5. `DUPLICATE_UNICODE`
+6. `MISSING_REQUIRED_GLYPH`
+7. `INVALID_GLYPH_METRICS`
+8. `INVALID_GLYPH_OUTLINE`
+9. `EMPTY_REQUIRED_OUTLINE` (excepto `space`)
+
+## Reglas no bloqueantes (warnings)
+
+1. `EMPTY_OPTIONAL_OUTLINE`
+2. `UNMAPPED_UNICODE_OPTIONAL`
+3. `SELF_INTERSECTION_POSSIBLE`
+4. `EXTREME_SIDE_BEARING`
+
+## Reglas de metricas globales
+
+1. `unitsPerEm` en [16, 16384]
+2. `ascender > 0`
+3. `descender <= 0`
+4. `ascender - descender <= 2 * unitsPerEm`
+5. `baseline == 0`
+6. `lineGap >= 0`
+
+## Reglas de glifo
+
+1. `advanceWidth >= 0`
+2. Si `kind=space`, outline puede vacio.
+3. Si `status=outlined` y `kind!=space`, outline no vacio.
+4. Unicidad de `UnicodeCodePoint` dentro de `Typeface`.
+
+## Politica de Unicode v1
+
+1. Glifo puede no tener unicode en `freeform`.
+2. En `minimal-latin`, glifos requeridos deben mapear unicode esperado.
+3. Ligaduras quedan fuera de alcance OpenType avanzado en v1.
+
+## Codigos de issue v1
+
+1. `MISSING_FAMILY_NAME`
+2. `MISSING_STYLE_NAME`
+3. `INVALID_FONT_METRICS`
+4. `NO_GLYPHS`
+5. `DUPLICATE_UNICODE`
+6. `MISSING_REQUIRED_GLYPH`
+7. `INVALID_GLYPH_METRICS`
+8. `INVALID_GLYPH_OUTLINE`
+9. `EMPTY_REQUIRED_OUTLINE`
+10. `EMPTY_OPTIONAL_OUTLINE`
+11. `UNMAPPED_UNICODE_OPTIONAL`
+12. `SELF_INTERSECTION_POSSIBLE`
+13. `EXTREME_SIDE_BEARING`
