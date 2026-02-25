@@ -54,7 +54,8 @@ Casos de uso vinculados:
 Responsabilidad:
 
 1. Editar metadatos (`familyName`, `styleName`, `designer`, `version`).
-2. Editar metricas globales (`unitsPerEm`, `ascender`, `descender`, `lineGap`, `baseline`).
+2. Editar metricas globales (`unitsPerEm`, `ascender`, `descender`, `lineGap`).
+3. Mostrar `baseline` fijo en `0` como dato informativo no editable.
 
 Casos de uso vinculados:
 

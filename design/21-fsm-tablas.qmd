@@ -14,10 +14,10 @@
 |---|---|---|---|---|
 | `idle` | `SELECT_FILE` | archivo seleccionado | cargar archivo | `loadingFile` |
 | `loadingFile` | `FILE_LOADED` | contenido no vacio | parse XML | `parsing` |
-| `loadingFile` | `PARSE_FAIL` | - | registrar issue | `error` |
+| `loadingFile` | `LOAD_FAIL` | - | registrar issue | `error` |
 | `parsing` | `PARSE_OK` | schema compatible | construir mapping runtime | `mapping` |
 | `parsing` | `PARSE_FAIL` | - | registrar issue | `error` |
-| `mapping` | `MAP_OK` | sin faltantes bloqueantes | validar geometria | `validating` |
+| `mapping` | `MAP_OK` | sin faltantes requeridos (faltantes opcionales -> warning) | validar geometria | `validating` |
 | `mapping` | `MAP_FAIL` | - | registrar issue | `error` |
 | `validating` | `VALIDATION_OK` | `isBlocking=false` | aplicar outlines al agregado | `applied` |
 | `validating` | `VALIDATION_FAIL` | `isBlocking=true` | no aplicar cambios | `error` |
@@ -29,8 +29,9 @@
 1. `SELECT_FILE`: `filename`
 2. `FILE_LOADED`: `svgContent`
 3. `PARSE_OK`: `templateMapping`
-4. `PARSE_FAIL`: `issues[]`
-5. `VALIDATION_FAIL`: `issues[]`, `isBlocking`
+4. `LOAD_FAIL`: `issues[]`
+5. `PARSE_FAIL`: `issues[]`
+6. `VALIDATION_FAIL`: `issues[]`, `isBlocking`
 
 ## FSM 2: ExportTypefaceToTtf
 

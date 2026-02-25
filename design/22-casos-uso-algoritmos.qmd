@@ -23,8 +23,8 @@
 1. Validar entrada y schema de mapping.
 2. Cargar `project`.
 3. Ejecutar `GlyphVectorImporter.importFromSvg`.
-4. Si `isBlocking=true`, devolver `IMPORT_BLOCKED_BY_VALIDATION`.
-5. Aplicar outlines item por item al agregado.
+4. Si `isBlocking=true`, devolver `IMPORT_BLOCKED_BY_VALIDATION` y no persistir cambios.
+5. Si `isBlocking=false`, aplicar batch completo de outlines de forma atomica (todo o nada).
 6. Actualizar `updatedAt`.
 7. Guardar snapshot.
 8. Devolver conteo e issues.

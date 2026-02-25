@@ -52,6 +52,10 @@ Mapear `Typeface` de dominio a binario `TTF` de forma determinista.
 1. Coordenadas a entero con `round()`.
 2. Metricas enteras.
 3. No usar normalizacion adicional en exportador.
+4. La cuantizacion final de coordenadas ocurre una sola vez en exportacion TTF.
+5. Si la aproximacion `C -> Q` supera tolerancia visual configurable, emitir warning `CURVE_APPROXIMATION_DRIFT`.
+6. Tolerancia recomendada v1 para drift maximo por punto: `<= 0.5` unidades tipograficas.
+7. En `unitsPerEm` bajos, mantener la misma regla de drift y priorizar consistencia de contorno cerrado.
 
 ## Tablas TTF minimas y defaults v1
 

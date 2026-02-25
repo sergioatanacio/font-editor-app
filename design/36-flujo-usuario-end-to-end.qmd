@@ -39,10 +39,11 @@ InicioProyecto
 ### Importacion SVG (FSM 1)
 
 1. `SELECT_FILE -> loadingFile -> parsing -> mapping -> validating`.
-2. Si `VALIDATION_FAIL` (`isBlocking=true`):
-3. No se aplican cambios al agregado.
-4. UI transita a `PanelErrores` con detalle tecnico.
-5. Usuario corrige SVG y reintenta.
+2. Si `LOAD_FAIL` o `PARSE_FAIL`: se corta flujo y se informa detalle tecnico.
+3. Si `VALIDATION_FAIL` (`isBlocking=true`): no se aplican cambios al agregado.
+4. La importacion v1 es atomica: se aplica batch completo o no se aplica nada.
+5. UI transita a `PanelErrores` con detalle tecnico.
+6. Usuario corrige SVG y reintenta.
 
 ### Exportacion TTF (FSM 2)
 

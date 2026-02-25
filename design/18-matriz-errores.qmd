@@ -26,7 +26,9 @@ type ErrorEnvelope = {
 | `INVALID_TYPEFACE_METADATA` | application | error | true | "Los metadatos de la fuente no son validos." |
 | `TYPEFACE_NOT_FOUND` | application | error | true | "No se encontro la fuente." |
 | `IMPORT_BLOCKED_BY_VALIDATION` | application | error | true | "La importacion fue bloqueada por validacion." |
+| `INVALID_CELL_REFERENCE` | infrastructure | error | true | "La celda de importacion tiene padding o altura invalidos." |
 | `EXPORT_BLOCKED_BY_READINESS` | application | error | true | "La fuente no cumple criterios de exportacion." |
+| `CURVE_APPROXIMATION_DRIFT` | infrastructure | warning | true | "Se detecto una aproximacion de curva con posible desviacion visual." |
 | `FILE_READ_ERROR` | infrastructure | error | true | "No fue posible leer el archivo." |
 | `FILE_SAVE_ERROR` | infrastructure | error | true | "No fue posible guardar el archivo." |
 | `USE_CASE_EXECUTION_ERROR` | application | error | true | "Ocurrio un error al ejecutar la operacion." |

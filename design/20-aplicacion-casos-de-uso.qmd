@@ -48,9 +48,11 @@ Puertos: `ProjectRepository`, `Clock`
 
 ### 3) `UpdateTypefaceMetrics`
 
-Input: `projectId`, `unitsPerEm`, `ascender`, `descender`, `lineGap`, `baseline`  
+Input: `projectId`, `unitsPerEm`, `ascender`, `descender`, `lineGap`  
 Output: `projectId`, `updatedAt`  
 Puertos: `ProjectRepository`, `Clock`
+
+Nota v1: `baseline` es invariante de dominio fijo en `0` y no es editable por caso de uso.
 
 ### 4) `GenerateTemplateSvg`
 

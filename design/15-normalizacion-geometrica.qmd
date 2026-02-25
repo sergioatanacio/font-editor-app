@@ -44,16 +44,18 @@ Convertir vectores SVG a `GlyphOutline` preservando trazos del diseniador y evit
 1. Sistema origen: coordenadas del SVG.
 2. Sistema destino: espacio tipografico con baseline 0.
 3. Invertir eje Y para dominio tipografico.
-4. Definicion cerrada:
+4. Validar precondicion de celda: `padding >= 0` y `cellHeight > 2 * padding`.
+5. Definicion cerrada:
 
 `cellEmHeightReference = cellHeight - (2 * padding)`
 
-5. Escalar por factor:
+6. Si `cellEmHeightReference <= 0`: error bloqueante `INVALID_CELL_REFERENCE`.
+7. Escalar por factor:
 
 `scale = unitsPerEm / cellEmHeightReference`
 
-6. Trasladar origen segun caja de celda.
-7. Redondeo de coordenadas normalizadas a 4 decimales.
+8. Trasladar origen segun caja de celda.
+9. Redondeo de coordenadas normalizadas a 4 decimales.
 
 ## Paso 6: NormalizeCommands
 
@@ -86,6 +88,13 @@ Nota: self-intersection no bloquea en v1, pero genera warning.
 2. `globalIssues[]`.
 3. `isBlocking` boolean.
 
+## Regla de BoundingBox v1
+
+1. `bounds` es opcional en `ImportedGlyphBatch`.
+2. Si el importador puede calcularlo de forma confiable, debe incluirlo.
+3. Si no se incluye, el dominio no bloquea ni recalcula en v1.
+4. `bounds` en v1 es informativo (UI/diagnostico), no invariante de dominio.
+
 ## Codigos de issue de importacion
 
 1. `MISSING_TEMPLATE_ROOT`
@@ -98,3 +107,4 @@ Nota: self-intersection no bloquea en v1, pero genera warning.
 8. `NON_FINITE_COORDINATE`
 9. `UNSUPPORTED_PATH_COMMAND`
 10. `SELF_INTERSECTION_DETECTED`
+11. `INVALID_CELL_REFERENCE`
