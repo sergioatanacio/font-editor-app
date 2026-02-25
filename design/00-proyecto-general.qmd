@@ -54,3 +54,22 @@ Para v1 se define `SVG` como formato oficial de importación/exportación de pla
 3. Dominio orientado a intención tipográfica.
 4. Adaptadores para librerías y formatos.
 5. Errores explícitos y tipados.
+
+## Patrones de diseno v1 (decisiones cerradas)
+
+1. `Command`: cada caso de uso de aplicacion se implementa como comando con contrato comun.
+2. `FSM`: importacion y exportacion usan maquinas de estado cerradas; no se permite logica ad-hoc fuera de FSM.
+3. `ACL/Adapter`: toda libreria externa queda encapsulada en adaptadores de infraestructura.
+4. `Mapper/Translator`: conversiones entre formatos externos y dominio deben pasar por mappers explicitos.
+5. `Factory`: entidades y value objects se crean por `create(...)` con validacion de invariantes.
+6. `Strategy`: reglas variables por preset se implementan por estrategias seleccionadas en runtime.
+7. `Specification`: validaciones de negocio reutilizables se expresan como especificaciones composables.
+8. `Facade` (fina): la UI orquesta via fachada de aplicacion sin acceder a infraestructura.
+9. `Builder`: permitido solo para objetos compuestos grandes (`TemplateSpec`, `ImportedGlyphBatch`, snapshots).
+10. `Domain Events`: fuera de publicacion en v1 (no-op), pero contratos quedan preparados.
+
+## Regla anti-sobredisenio
+
+1. No introducir patrones sin evidencia de complejidad real.
+2. Si un objeto simple puede construirse con `create(...)`, no usar `Builder`.
+3. Si una pantalla puede invocar 1-2 casos de uso directos, no crear fachada adicional.

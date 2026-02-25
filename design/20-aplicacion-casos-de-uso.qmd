@@ -134,3 +134,20 @@ Puertos: `ProjectSerializer`, `ProjectRepository`
 13. `IMPORT_BLOCKED_BY_VALIDATION`
 14. `EXPORT_BLOCKED_BY_READINESS`
 15. `USE_CASE_EXECUTION_ERROR`
+
+## Patron Command (contrato cerrado)
+
+Todo caso de uso en v1 implementa este contrato conceptual:
+
+```ts
+interface UseCase<I, O, E> {
+  execute(input: I): Promise<Result<O, E>>;
+}
+```
+
+Reglas:
+
+1. El `Input DTO` es inmutable y cerrado.
+2. El `Output DTO` no expone entidades de dominio mutables.
+3. Los errores se devuelven tipados en `Result`.
+4. El caso de uso no llama UI ni adaptadores concretos; solo puertos.

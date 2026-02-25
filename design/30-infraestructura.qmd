@@ -69,3 +69,14 @@ src/
       workers/
         SvgImportWorkerAdapter.ts
 ```
+
+## Patrones estructurales en infraestructura (v1)
+
+1. `ACL/Adapter`: cada integracion externa se encapsula en un adapter dedicado.
+2. `Mapper/Translator`: tipos externos no cruzan frontera hacia dominio/aplicacion.
+3. `Pipeline` de importacion SVG: pasos deterministas y testeables, sin saltos de etapa.
+4. `Null Object`: eventos de dominio y servicios opcionales pueden inyectar implementacion no-op en v1.
+
+## Regla de frontera
+
+1. Ningun adapter debe exponer objetos crudos de librerias externas fuera de infraestructura.

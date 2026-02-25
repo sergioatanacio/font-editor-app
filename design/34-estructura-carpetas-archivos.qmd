@@ -120,3 +120,24 @@ docs/
 2. Luego se agregan adaptadores de `infrastructure`.
 3. Finalmente se exponen en `presentation/ui`.
 4. Ningun feature se considera completo sin pruebas unitarias e integracion minima.
+
+## Matriz Patron -> Ubicacion (v1)
+
+1. `Command` -> `application/use-cases/`
+2. `FSM` -> `application/fsm/`
+3. `Facade` -> `application/facades/` o `presentation/ui/state/` (fina, por flujo)
+4. `Factory` -> `domain/entities/` y `domain/value-objects/`
+5. `Strategy` -> `domain/services/strategies/`
+6. `Specification` -> `domain/services/specifications/`
+7. `Mapper/Translator` -> `infrastructure/*/mappers/` y `presentation/ui/mappers/`
+8. `ACL/Adapter` -> `infrastructure/adapters/`
+9. `Builder` -> `application/dto/builders/` o `infrastructure/*/builders/` para compuestos
+10. `Null Object` -> `domain/events/` (ej. `NoOpDomainEventBus`) y servicios opcionales
+
+## Reglas de implementacion por patron
+
+1. Un `UseCase` debe exponer `execute(input): Promise<Result<output,error>>`.
+2. Ningun estado de flujo critico puede mutar fuera de su `FSM reducer`.
+3. Todo adapter externo debe mapear tipos externos a contratos internos antes de devolver.
+4. Ningun mapper puede depender de UI framework ni de libreria externa de infraestructura opuesta.
+5. Ninguna fachada puede contener reglas de dominio; solo orquestacion.

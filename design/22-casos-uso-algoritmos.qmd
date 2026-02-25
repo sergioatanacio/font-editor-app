@@ -78,3 +78,11 @@
 4. Validar invariantes de snapshot.
 5. Guardar en `ProjectRepository`.
 6. Devolver IDs.
+
+## Patrones aplicados por flujo (operativo)
+
+1. `Command`: cada algoritmo de esta seccion corresponde a un `UseCase.execute`.
+2. `Strategy`: `ValidateTypefaceForExport` selecciona estrategia por `exportPreset`.
+3. `Specification`: validaciones de contornos, metricas y unicode se aplican como reglas composables de dominio.
+4. `Builder`: `ImportedGlyphBatch` puede ensamblarse por builder para calcular `isBlocking` y `preview` de forma determinista.
+5. `Mapper`: toda salida de infraestructura se mapea a DTOs/errores canonicos antes de volver a aplicacion.

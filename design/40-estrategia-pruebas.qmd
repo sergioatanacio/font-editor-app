@@ -70,3 +70,16 @@ Asegurar consistencia de dominio, estabilidad de flujos y preservacion de vector
 3. Previsualizacion de importacion obligatoria antes de aplicar cambios.
 4. Exportacion `TTF` bloqueada cuando readiness falla.
 5. Proyectos guardados cargan sin corrupcion.
+
+## Checklist de patrones (criterio de cumplimiento)
+
+1. `Command`: existe clase por caso de uso con `execute(...)` y pruebas de entrada/salida.
+2. `FSM`: cada flujo critico tiene tabla de transiciones + tests de eventos invalidos.
+3. `Factory`: entidades/VOs no se instancian con `new` fuera del propio tipo.
+4. `Strategy`: readiness cambia por preset sin `switch` disperso en UI o infraestructura.
+5. `Specification`: reglas de validacion reutilizadas en dominio y policy de exportacion.
+6. `Mapper`: conversiones SVG->dominio, dominio->TTF, snapshot<->dominio y errores->UI estan aisladas.
+7. `ACL/Adapter`: cada libreria externa esta encapsulada y reemplazable.
+8. `Facade` (si aplica): UI usa fachada fina sin logica de negocio.
+9. `Builder` (si aplica): solo para compuestos grandes con agregacion de issues/summary.
+10. `Domain Events`: bus no-op en v1 verificado por tests de no-side-effects.

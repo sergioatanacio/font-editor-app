@@ -61,3 +61,11 @@
 
 1. Repetir `EXPORT_REQUESTED` fuera de `idle`: ignorar.
 2. Repetir `RESET`: mantener `idle`.
+
+## Patron State Machine (regla de implementacion)
+
+1. La maquina de estado es la unica fuente de verdad para estados de flujo critico.
+2. Los `guards` deciden transicion; las `actions` no deciden estado.
+3. Eventos invalidos en estado actual no mutan estado.
+4. Errores operacionales transitan a `error` y solo `RESET` desbloquea.
+5. Las transiciones deben estar respaldadas por pruebas de tabla (`state,event -> nextState`).

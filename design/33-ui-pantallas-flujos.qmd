@@ -211,3 +211,10 @@ type ViewState<T> = {
 1. UI depende de `application` (casos de uso/FSM) y de tipos compartidos.
 2. UI no depende de implementaciones concretas de infraestructura.
 3. Inyeccion de dependencias resuelta en el punto de arranque de la app (`main`).
+
+## Patron Facade en UI (decision v1)
+
+1. La UI puede usar una fachada fina por flujo (`ImportFacade`, `ExportFacade`, `ProjectFacade`).
+2. La fachada orquesta casos de uso + FSM y devuelve `ViewState`; no contiene reglas de dominio.
+3. Prohibido `God Facade`: si una fachada supera 5 responsabilidades funcionales, debe dividirse.
+4. La UI no llama adaptadores de infraestructura directamente.
