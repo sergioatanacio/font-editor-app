@@ -29,7 +29,7 @@
 5. Construir `summary` de importacion.
 6. Si `isBlocking=true`, devolver preview bloqueante sin persistir cambios.
 7. Persistir preview temporal con `previewId` y TTL local.
-8. Devolver preview para confirmacion en UI.
+8. Devolver preview para confirmacion en UI, incluyendo `issues[]` tipadas.
 
 ## `CommitTemplateImportPreview`
 
@@ -42,12 +42,12 @@
 7. Actualizar `updatedAt`.
 8. Guardar snapshot.
 9. Invalidar preview temporal.
-10. Devolver conteo e issues.
+10. Devolver conteo e `issues[]`.
 
 ## `ValidateTypefaceForExport`
 
 1. Cargar `project`.
-2. Ejecutar `TypefaceExportReadinessPolicy`.
+2. Ejecutar `ExportReadinessPolicy` con `typeface` + `exportPreset`.
 3. Devolver reporte canonico.
 
 ## `ExportTypefaceToTtf`
@@ -56,8 +56,9 @@
 2. Ejecutar `ValidateTypefaceForExport`.
 3. Si `isReady=false`, devolver `EXPORT_BLOCKED_BY_READINESS`.
 4. Generar bytes con `FontBinaryExporter`.
-5. Guardar archivo con `FileSystemGateway`.
-6. Devolver nombre y tamanio.
+5. Recolectar advertencias tecnicas de generacion (`warnings[]`).
+6. Guardar archivo con `FileSystemGateway`.
+7. Devolver nombre, tamanio y `warnings[]`.
 
 ## `SaveProjectToFile`
 

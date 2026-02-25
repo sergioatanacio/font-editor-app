@@ -1,4 +1,4 @@
-# Dominio: Agregados y Entidades
+﻿# Dominio: Agregados y Entidades
 
 ## Aggregate Root: `Typeface`
 
@@ -9,7 +9,7 @@
 3. `metrics: FontMetrics`
 4. `glyphs: ReadonlyMap<GlyphId, Glyph>`
 
-### Métodos cerrados (v1)
+### Metodos cerrados (v1)
 
 1. `addGlyph(glyph: Glyph): Typeface`
 2. `replaceGlyph(glyph: Glyph): Typeface`
@@ -19,15 +19,16 @@
 6. `changeGlyphMetrics(glyphId: GlyphId, metrics: GlyphMetrics): Typeface`
 7. `changeMetadata(metadata: TypefaceMetadata): Typeface`
 8. `changeFontMetrics(metrics: FontMetrics): Typeface`
-9. `validateExportReadiness(): ExportReadinessReport`
+9. `validateInternalConsistency(): Result<void>`
 
 ### Invariantes del agregado
 
 1. No duplicar `GlyphId`.
 2. No duplicar `UnicodeCodePoint`.
-3. `metadata` válido y no vacío en campos obligatorios.
-4. `metrics` válidas.
-5. Glifos requeridos por política de exportación.
+3. `metadata` valido y no vacio en campos obligatorios.
+4. `metrics` validas.
+
+Nota: los glifos requeridos por preset de exportacion se validan en `ExportReadinessPolicy` porque dependen de contexto externo (`exportPreset`).
 
 ## Entity: `Glyph`
 
@@ -39,9 +40,13 @@
 4. `outline: GlyphOutline`
 5. `metrics: GlyphMetrics`
 6. `kind: GlyphKind` (`base | mark | ligature | space`)
-7. `status: GlyphStatus` (`empty | outlined`)
 
-### Métodos cerrados (v1)
+### Propiedad derivada
+
+1. `status` es derivado (no persistido):
+   `empty` si `outline` no tiene contornos; `outlined` en caso contrario.
+
+### Metodos cerrados (v1)
 
 1. `replaceOutline(outline: GlyphOutline): Glyph`
 2. `clearOutline(): Glyph`
@@ -50,17 +55,15 @@
 5. `changeMetrics(metrics: GlyphMetrics): Glyph`
 6. `rename(name: GlyphName): Glyph`
 7. `changeKind(kind: GlyphKind): Glyph`
-8. `markOutlined(): Glyph`
-9. `markEmpty(): Glyph`
 
 ### Invariantes de entidad
 
-1. `name` no vacío.
-2. Si `kind !== space` y `status = outlined`, `outline` no vacío.
-3. Si `kind = space`, `outline` puede ser vacío.
+1. `name` no vacio.
+2. Si `kind !== space`, `outline` no vacio cuando el glifo se declara dibujado.
+3. Si `kind = space`, `outline` puede ser vacio.
 4. `advanceWidth >= 0`.
 
-## Errores de dominio (catálogo v1)
+## Errores de dominio (catalogo v1)
 
 1. `DomainError`
 2. `DuplicateGlyphIdError`

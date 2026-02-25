@@ -1,4 +1,4 @@
-# Dominio: Puertos (Contratos)
+﻿# Dominio: Puertos (Contratos)
 
 ## Objetivo
 
@@ -47,6 +47,14 @@ Nota: en v1 se importa solo SVG.
 1. `saveFile(filename: string, content: Blob | Uint8Array | string): Promise<void>`
 2. `pickFile(accept: string[]): Promise<PickedFile | null>`
 
+### `Clock`
+
+1. `now(): string` (ISO-8601)
+
+### `IdGenerator`
+
+1. `nextId(): string`
+
 ## Tipos de contrato cerrados (v1)
 
 ### `TemplateSpec`
@@ -66,12 +74,20 @@ Nota: en v1 se importa solo SVG.
 3. `requiredGlyphIds: string[]`
 4. `optionalGlyphIds: string[]`
 
+### `ImportIssue`
+
+1. `code: string`
+2. `severity: "error" | "warning"`
+3. `message: string`
+4. `glyphId?: string`
+5. `context?: Record<string, unknown>`
+
 ### `ImportedGlyphBatch`
 
-1. `items: Array<{ glyphId: string; outline: GlyphOutline | null; bounds?: { xMin: number; yMin: number; xMax: number; yMax: number }; issues: string[] }>`
-2. `globalIssues: string[]`
+1. `items: Array<{ glyphId: string; outline: GlyphOutline | null; bounds?: { xMin: number; yMin: number; xMax: number; yMax: number }; issues: ImportIssue[] }>`
+2. `globalIssues: ImportIssue[]`
 3. `isBlocking: boolean`
-4. `preview: Array<{ glyphId: string; codePoint?: number; status: "ok" | "warning" | "error" | "empty"; issueCodes: string[] }>`
+4. `preview: Array<{ glyphId: string; codePoint?: number; status: "ok" | "warning" | "error" | "empty"; issues: ImportIssue[] }>`
 
 ## Eventos de dominio (disenio v1)
 

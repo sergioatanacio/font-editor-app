@@ -1,8 +1,8 @@
-# Especificacion Cerrada: Normalizacion Geometrica SVG -> Dominio
+﻿# Especificacion Cerrada: Normalizacion Geometrica SVG -> Dominio
 
 ## Objetivo
 
-Convertir vectores SVG a `GlyphOutline` preservando trazos del diseniador y evitando estados geometricos invalidos.
+Convertir vectores SVG a `GlyphOutline` preservando trazos del disenador y evitando estados geometricos invalidos.
 
 ## Pipeline obligatorio
 
@@ -84,10 +84,10 @@ Nota: self-intersection no bloquea en v1, pero genera warning.
 
 `ImportedGlyphBatch`:
 
-1. `items[]` con `glyphId`, `outline`, `bounds`, `issues[]`.
-2. `globalIssues[]`.
+1. `items[]` con `glyphId`, `outline`, `bounds`, `issues: ImportIssue[]`.
+2. `globalIssues: ImportIssue[]`.
 3. `isBlocking` boolean.
-4. `preview[]` con `glyphId`, `codePoint?`, `status: "ok" | "warning" | "error" | "empty"`, `issueCodes[]`.
+4. `preview[]` con `glyphId`, `codePoint?`, `status: "ok" | "warning" | "error" | "empty"`, `issues: ImportIssue[]`.
 
 ## Regla de BoundingBox v1
 

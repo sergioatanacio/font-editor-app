@@ -64,7 +64,7 @@ Puertos: `ProjectRepository`, `TemplateExporter`
 ### 5) `PreviewTemplateImport`
 
 Input: `projectId`, `svgContent`, `mapping`  
-Output: `previewId`, `glyphPreview[]`, `summary`, `isBlocking`  
+Output: `previewId`, `glyphPreview[]`, `summary`, `issues[]`, `isBlocking`  
 Puertos: `ProjectRepository`, `GlyphVectorImporter`, `Clock`
 
 `summary` minimo: `total`, `ok`, `warning`, `error`, `empty`, `blockingCount`

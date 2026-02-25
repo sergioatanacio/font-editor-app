@@ -1,4 +1,4 @@
-# Especificacion Cerrada: Exportador TTF v1
+﻿# Especificacion Cerrada: Exportador TTF v1
 
 ## Objetivo
 
@@ -73,6 +73,7 @@ Mapear `Typeface` de dominio a binario `TTF` de forma determinista.
 
 ## Salida del adaptador
 
-1. `Uint8Array` binario TTF.
+1. `bytes: Uint8Array`.
 2. `byteLength > 0`.
-3. Errores tecnicos mapeados a `USE_CASE_EXECUTION_ERROR` con `context.cause`.
+3. `warnings: ExportIssue[]` (incluye `CURVE_APPROXIMATION_DRIFT` cuando aplique).
+4. Errores tecnicos mapeados a `USE_CASE_EXECUTION_ERROR` con `context.cause`.
