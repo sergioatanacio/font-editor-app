@@ -20,6 +20,7 @@ Reglas:
 2. Si solo `includeCodeChars=true`: preset derivado `code-dev`.
 3. Si ambos `true`: preset derivado `latam-plus-code`.
 4. Si ambos `false`: error `INVALID_CHARACTER_SELECTION`.
+5. En la misma pantalla `InicioProyecto` se selecciona tambien `exportPreset` (`minimal-latin` | `freeform`), independiente de estos checks.
 
 ## Presets de exportacion v1 (sin cambios)
 

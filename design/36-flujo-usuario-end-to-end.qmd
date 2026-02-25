@@ -8,23 +8,24 @@ Definir un flujo unico y trazable de usuario desde inicio de proyecto hasta expo
 
 1. Usuario entra a `InicioProyecto` y crea o abre proyecto.
 2. Usuario define caracteres con 2 checks (`includeLatamAlnum`, `includeCodeChars`).
-3. Usuario configura metadatos y metricas en `ConfiguracionFuente`.
-4. Usuario genera plantilla en `PlantillaSvg` y descarga SVG.
-5. Usuario edita SVG externamente (Illustrator/Inkscape).
-6. Usuario reimporta en `ImportacionSvg`.
-7. Sistema valida y construye `PrevisualizacionImportacion`.
-8. Usuario revisa rejilla de glifos, filtra issues y confirma aplicacion.
-9. Sistema aplica batch de importacion de forma atomica.
-10. Usuario ajusta glifos en `EditorGlifos` (unicode, outline, metricas).
-11. Usuario ejecuta readiness en `ValidacionExportacion`.
-12. Si readiness es valido, usuario exporta en `ExportacionTtf`.
-13. Sistema guarda archivo `.ttf` y confirma exito.
-14. Usuario guarda snapshot del proyecto (`GuardarAbrirProyecto`) cuando lo requiera.
+3. Usuario elige `exportPreset` inicial (`minimal-latin` o `freeform`).
+4. Usuario configura metadatos y metricas en `ConfiguracionFuente`.
+5. Usuario genera plantilla en `PlantillaSvg` y descarga SVG.
+6. Usuario edita SVG externamente (Illustrator/Inkscape).
+7. Usuario reimporta en `ImportacionSvg`.
+8. Sistema valida y construye `PrevisualizacionImportacion`.
+9. Usuario revisa rejilla de glifos, filtra issues y confirma aplicacion.
+10. Sistema aplica batch de importacion de forma atomica.
+11. Usuario ajusta glifos en `EditorGlifos` (unicode, outline, metricas).
+12. Usuario ejecuta readiness en `ValidacionExportacion`.
+13. Si readiness es valido, usuario exporta en `ExportacionTtf`.
+14. Sistema guarda archivo `.ttf` y confirma exito.
+15. Usuario guarda snapshot del proyecto (`GuardarAbrirProyecto`) cuando lo requiera.
 
 ## Flujo resumido (diagrama textual)
 
 ```text
-InicioProyecto (2 checks)
+InicioProyecto (2 checks + exportPreset)
   -> ConfiguracionFuente
   -> PlantillaSvg (generar/descargar)
   -> EdicionExternaSVG
@@ -49,6 +50,7 @@ InicioProyecto (2 checks)
 4. `APPLY_REQUESTED` con `isBlocking=true` debe rechazar confirmacion.
 5. La importacion v1 es atomica: se aplica batch completo o no se aplica nada.
 6. Si preview expira: `IMPORT_PREVIEW_EXPIRED`.
+7. `CANCEL_IMPORT` puede ejecutarse en `loadingFile`, `parsing`, `mapping`, `validating` y `previewReady`.
 
 ### Exportacion TTF (FSM 2)
 

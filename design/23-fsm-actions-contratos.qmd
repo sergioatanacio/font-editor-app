@@ -15,6 +15,7 @@ type ActionResult<TEvent> =
 3. `mapTemplateAction(input: { parsed: unknown }): ActionResult<"MAP_OK" | "MAP_FAIL">`
 4. `validateBatchAction(input: { batch: ImportedGlyphBatch }): ActionResult<"VALIDATION_OK" | "VALIDATION_FAIL">`
 5. `applyBatchAction(input: { projectId: string; previewId: string }): ActionResult<"APPLY_OK" | "APPLY_FAIL">`
+6. `cancelImportAction(input: { reason?: string }): ActionResult<"CANCEL_IMPORT">`
 
 ## FSM Exportacion: actions
 

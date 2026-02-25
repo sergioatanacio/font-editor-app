@@ -47,6 +47,7 @@ Responsabilidad:
 3. Cargar ultimo proyecto local si existe.
 4. Seleccionar conjunto de caracteres con 2 checks:
    `includeLatamAlnum` y `includeCodeChars`.
+5. Seleccionar `exportPreset` inicial: `minimal-latin` o `freeform`.
 
 Casos de uso vinculados:
 
@@ -177,11 +178,12 @@ Reglas:
 ## Componentes UI obligatorios v1
 
 1. `CharacterSetChecks` (2 checks de inicio).
-2. `GlyphPreviewGrid` (rejilla virtualizable).
-3. `GlyphPreviewCard` (miniatura + estado).
-4. `GlyphStatusFilterBar` (ok/warning/error/empty).
-5. `GlyphDetailPanel` (issue codes, codepoint, bounds, acciones).
-6. `ImportSummaryPanel` (totales y bloqueantes).
+2. `ExportPresetSelector` (`minimal-latin` | `freeform`).
+3. `GlyphPreviewGrid` (rejilla virtualizable).
+4. `GlyphPreviewCard` (miniatura + estado).
+5. `GlyphStatusFilterBar` (ok/warning/error/empty).
+6. `GlyphDetailPanel` (issue codes, codepoint, bounds, acciones).
+7. `ImportSummaryPanel` (totales y bloqueantes).
 
 ## Reglas de estado de interfaz
 

@@ -21,6 +21,7 @@ Mapear `Typeface` de dominio a binario `TTF` de forma determinista.
 2. `advanceWidth` por defecto de `.notdef`: `round(unitsPerEm * 0.5)`.
 3. `space` puede tener outline vacio.
 4. Glifo no `space` con outline vacio: bloqueado por readiness.
+5. La creacion de `.notdef` en exportador es fallback defensivo; en flujo normal v1 no deberia activarse porque readiness bloquea faltantes requeridos.
 
 ## Mapeo de metricas
 

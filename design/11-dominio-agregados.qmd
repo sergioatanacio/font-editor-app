@@ -59,7 +59,7 @@ Nota: los glifos requeridos por preset de exportacion se validan en `ExportReadi
 ### Invariantes de entidad
 
 1. `name` no vacio.
-2. Si `kind !== space`, `outline` no vacio cuando el glifo se declara dibujado.
+2. `outline` debe cumplir invariantes de `GlyphOutline` cuando existe geometria.
 3. Si `kind = space`, `outline` puede ser vacio.
 4. `advanceWidth >= 0`.
 

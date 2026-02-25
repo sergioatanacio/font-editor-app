@@ -73,3 +73,10 @@ Para v1 se define `SVG` como formato oficial de importación/exportación de pla
 1. No introducir patrones sin evidencia de complejidad real.
 2. Si un objeto simple puede construirse con `create(...)`, no usar `Builder`.
 3. Si una pantalla puede invocar 1-2 casos de uso directos, no crear fachada adicional.
+
+## Fuente de verdad documental
+
+1. Los archivos `.qmd` son la fuente canonica de especificacion.
+2. `main.qmd` compila esos `.qmd` en el `Documento Maestro`.
+3. `main.md` es artefacto compilado de lectura y no reemplaza la fuente canonica.
+4. Toda referencia normativa debe apuntar a secciones/anchors del compilado o al `.qmd` canonico correspondiente, evitando duplicar reglas.

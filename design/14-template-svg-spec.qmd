@@ -34,7 +34,7 @@ Definir un contrato estable para exportar e importar plantillas SVG sin ambigued
     "cellHeight": 120,
     "padding": 12
   },
-  "glyphCount": 96
+  "glyphCount": 92
 }
 ```
 

@@ -15,12 +15,16 @@
 | `idle` | `SELECT_FILE` | archivo seleccionado | cargar archivo | `loadingFile` |
 | `loadingFile` | `FILE_LOADED` | contenido no vacio | parse XML | `parsing` |
 | `loadingFile` | `LOAD_FAIL` | - | registrar issue | `error` |
+| `loadingFile` | `CANCEL_IMPORT` | - | abortar carga y limpiar contexto parcial | `idle` |
 | `parsing` | `PARSE_OK` | schema compatible | construir mapping runtime | `mapping` |
 | `parsing` | `PARSE_FAIL` | - | registrar issue | `error` |
+| `parsing` | `CANCEL_IMPORT` | - | abortar parseo y limpiar contexto parcial | `idle` |
 | `mapping` | `MAP_OK` | sin faltantes requeridos (faltantes opcionales -> warning) | validar geometria | `validating` |
 | `mapping` | `MAP_FAIL` | - | registrar issue | `error` |
+| `mapping` | `CANCEL_IMPORT` | - | abortar mapeo y limpiar contexto parcial | `idle` |
 | `validating` | `VALIDATION_OK` | - | construir preview | `previewReady` |
 | `validating` | `VALIDATION_FAIL` | `isBlocking=true` | construir preview bloqueante | `previewReady` |
+| `validating` | `CANCEL_IMPORT` | - | abortar validacion y limpiar contexto parcial | `idle` |
 | `previewReady` | `APPLY_REQUESTED` | `isBlocking=false` | aplicar batch | `applying` |
 | `previewReady` | `APPLY_REQUESTED` | `isBlocking=true` | rechazar confirmacion | `error` |
 | `previewReady` | `CANCEL_IMPORT` | - | descartar preview | `idle` |
@@ -40,6 +44,7 @@
 7. `VALIDATION_FAIL`: `previewId`, `summary`, `issues[]`, `isBlocking=true`
 8. `VALIDATION_OK` y `VALIDATION_FAIL` incluyen `expiresAt` (TTL fijo 900s desde `createdAt`).
 9. `APPLY_FAIL`: `issues[]`
+10. `CANCEL_IMPORT`: `reason?`
 
 ## FSM 2: ExportTypefaceToTtf
 

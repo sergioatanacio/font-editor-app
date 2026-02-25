@@ -32,6 +32,7 @@
 8. Guardar `createdAt`, `expiresAt` y `baseProjectUpdatedAt`.
 9. La lectura de preview no renueva TTL (sin sliding expiration).
 10. Devolver preview para confirmacion en UI, incluyendo `issues[]` tipadas.
+11. Si se recibe cancelacion durante carga/parseo/mapeo/validacion, abortar con `AbortController` y no persistir preview.
 
 ## `CommitTemplateImportPreview`
 
