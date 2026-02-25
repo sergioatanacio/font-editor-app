@@ -32,18 +32,7 @@ Regla: `isReady = errors.length === 0`.
 1. `minimal-latin`
 2. `freeform`
 
-### `minimal-latin` requiere
-
-1. `.notdef`
-2. `space` (U+0020)
-3. `A-Z`
-4. `a-z`
-5. `0-9`
-
-### `freeform` requiere
-
-1. `.notdef`
-2. al menos 1 glifo no vacio adicional.
+Definicion canonica de conjuntos requeridos: ver `19-presets-y-glifos-requeridos.qmd`.
 
 ## Reglas bloqueantes (errors)
 

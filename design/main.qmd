@@ -30,6 +30,8 @@ Este archivo compila toda la documentación funcional y técnica del proyecto.
 
 {{< include 18-matriz-errores.qmd >}}
 
+{{< include 19-presets-y-glifos-requeridos.qmd >}}
+
 {{< include 20-aplicacion-casos-de-uso.qmd >}}
 
 {{< include 21-fsm-tablas.qmd >}}
@@ -47,6 +49,8 @@ Este archivo compila toda la documentación funcional y técnica del proyecto.
 {{< include 33-ui-pantallas-flujos.qmd >}}
 
 {{< include 34-estructura-carpetas-archivos.qmd >}}
+
+{{< include 36-flujo-usuario-end-to-end.qmd >}}
 
 {{< include 40-estrategia-pruebas.qmd >}}
 

@@ -33,6 +33,9 @@ Definir un contrato estable para exportar e importar plantillas SVG sin ambigued
 }
 ```
 
+Nota: `glyphCount` es derivado de `glyphSlots.length`. El valor mostrado es solo ejemplo documental.
+Regla canonica por preset: ver `19-presets-y-glifos-requeridos.qmd`.
+
 ## Contrato por celda
 
 Cada celda de glifo es un `g` con:
