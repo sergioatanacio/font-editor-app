@@ -21,6 +21,11 @@ Definir un contrato estable para exportar e importar plantillas SVG sin ambigued
 {
   "templateSchemaVersion": "1.0.0",
   "typefaceId": "tf_...",
+  "templateCharacterPreset": "latam-alnum",
+  "templateCharacterSelection": {
+    "includeLatamAlnum": true,
+    "includeCodeChars": false
+  },
   "unitsPerEm": 1000,
   "grid": {
     "cols": 10,
@@ -35,6 +40,7 @@ Definir un contrato estable para exportar e importar plantillas SVG sin ambigued
 
 Nota: `glyphCount` es derivado de `glyphSlots.length`. El valor mostrado es solo ejemplo documental.
 Regla canonica por preset: ver `19-presets-y-glifos-requeridos.qmd`.
+`templateCharacterPreset` debe corresponder con `templateCharacterSelection`.
 
 ## Contrato por celda
 
@@ -92,9 +98,11 @@ Se rechaza archivo si:
 ### `TemplateSpec` minimo
 
 1. `typefaceId`
-2. `glyphSlots[]` con `glyphId`, `glyphName`, `codePoint?`, `kind`, `slotIndex`
-3. `grid`
-4. `unitsPerEm`
+2. `templateCharacterPreset`
+3. `templateCharacterSelection`
+4. `glyphSlots[]` con `glyphId`, `glyphName`, `codePoint?`, `kind`, `slotIndex`
+5. `grid`
+6. `unitsPerEm`
 
 ### `TemplateMapping` minimo
 

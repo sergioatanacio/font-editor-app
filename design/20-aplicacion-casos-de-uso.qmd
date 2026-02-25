@@ -1,4 +1,4 @@
-# Capa de Aplicacion y Casos de Uso (Especificacion Cerrada)
+﻿# Capa de Aplicacion y Casos de Uso (Especificacion Cerrada)
 
 ## Contrato comun `Result` y error canonico
 
@@ -29,7 +29,7 @@ type Result<T> =
 
 ### 1) `CreateTypeface`
 
-Input: `projectId`, `familyName`, `styleName`, `unitsPerEm`, `exportPreset`  
+Input: `projectId`, `familyName`, `styleName`, `unitsPerEm`, `exportPreset`, `templateCharacterSelection`  
 Output: `typefaceId`, `projectId`  
 Puertos: `ProjectRepository`, `Clock`, `IdGenerator`
 
@@ -38,7 +38,8 @@ Errores:
 1. `INVALID_INPUT`
 2. `INVALID_TYPEFACE_METADATA`
 3. `INVALID_FONT_METRICS`
-4. `USE_CASE_EXECUTION_ERROR`
+4. `INVALID_CHARACTER_SELECTION`
+5. `USE_CASE_EXECUTION_ERROR`
 
 ### 2) `UpdateTypefaceMetadata`
 
@@ -57,52 +58,60 @@ Nota v1: `baseline` es invariante de dominio fijo en `0` y no es editable por ca
 ### 4) `GenerateTemplateSvg`
 
 Input: `projectId`  
-Output: `filename`, `svgContent`, `mapping`  
+Output: `filename`, `svgContent`, `mapping`, `templateCharacterPreset`  
 Puertos: `ProjectRepository`, `TemplateExporter`
 
-### 5) `ImportCompletedTemplateSvg`
+### 5) `PreviewTemplateImport`
 
 Input: `projectId`, `svgContent`, `mapping`  
-Output: `projectId`, `importedCount`, `issues[]`, `isBlocking`  
+Output: `previewId`, `glyphPreview[]`, `summary`, `isBlocking`  
 Puertos: `ProjectRepository`, `GlyphVectorImporter`, `Clock`
 
-### 6) `AssignUnicodeToGlyph`
+`summary` minimo: `total`, `ok`, `warning`, `error`, `empty`, `blockingCount`
+
+### 6) `CommitTemplateImportPreview`
+
+Input: `projectId`, `previewId`  
+Output: `projectId`, `importedCount`, `issues[]`  
+Puertos: `ProjectRepository`, `Clock`
+
+### 7) `AssignUnicodeToGlyph`
 
 Input: `projectId`, `glyphId`, `codePoint`  
 Output: `projectId`, `glyphId`  
 Puertos: `ProjectRepository`, `Clock`
 
-### 7) `ReplaceGlyphOutline`
+### 8) `ReplaceGlyphOutline`
 
 Input: `projectId`, `glyphId`, `outline`  
 Output: `projectId`, `glyphId`  
 Puertos: `ProjectRepository`, `Clock`
 
-### 8) `UpdateGlyphMetrics`
+### 9) `UpdateGlyphMetrics`
 
 Input: `projectId`, `glyphId`, `advanceWidth`, `leftSideBearing`  
 Output: `projectId`, `glyphId`  
 Puertos: `ProjectRepository`, `Clock`
 
-### 9) `ValidateTypefaceForExport`
+### 10) `ValidateTypefaceForExport`
 
 Input: `projectId`, `exportPreset`  
 Output: `report` (`isReady`, `errors[]`, `warnings[]`)  
 Puertos: `ProjectRepository`
 
-### 10) `ExportTypefaceToTtf`
+### 11) `ExportTypefaceToTtf`
 
 Input: `projectId`, `filename`  
 Output: `filename`, `byteLength`, `warnings[]`  
 Puertos: `ProjectRepository`, `FontBinaryExporter`, `FileSystemGateway`
 
-### 11) `SaveProjectToFile`
+### 12) `SaveProjectToFile`
 
 Input: `projectId`, `filename`  
 Output: `filename`, `byteLength`  
 Puertos: `ProjectRepository`, `ProjectSerializer`, `FileSystemGateway`
 
-### 12) `LoadProjectFromFile`
+### 13) `LoadProjectFromFile`
 
 Input: `fileContent`  
 Output: `projectId`, `typefaceId`, `schemaVersion`  
@@ -112,12 +121,15 @@ Puertos: `ProjectSerializer`, `ProjectRepository`
 
 1. `INVALID_INPUT`
 2. `INVALID_TYPEFACE_METADATA`
-3. `PROJECT_NOT_FOUND`
-4. `TYPEFACE_NOT_FOUND`
-5. `GLYPH_NOT_FOUND`
-6. `FILE_READ_ERROR`
-7. `FILE_SAVE_ERROR`
-8. `IMPORT_FORMAT_NOT_SUPPORTED`
-9. `IMPORT_BLOCKED_BY_VALIDATION`
-10. `EXPORT_BLOCKED_BY_READINESS`
-11. `USE_CASE_EXECUTION_ERROR`
+3. `INVALID_CHARACTER_SELECTION`
+4. `PROJECT_NOT_FOUND`
+5. `TYPEFACE_NOT_FOUND`
+6. `GLYPH_NOT_FOUND`
+7. `IMPORT_PREVIEW_NOT_FOUND`
+8. `IMPORT_PREVIEW_EXPIRED`
+9. `FILE_READ_ERROR`
+10. `FILE_SAVE_ERROR`
+11. `IMPORT_FORMAT_NOT_SUPPORTED`
+12. `IMPORT_BLOCKED_BY_VALIDATION`
+13. `EXPORT_BLOCKED_BY_READINESS`
+14. `USE_CASE_EXECUTION_ERROR`

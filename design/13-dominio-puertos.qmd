@@ -53,9 +53,11 @@ Nota: en v1 se importa solo SVG.
 
 1. `templateSchemaVersion: "1.0.0"`
 2. `typefaceId: string`
-3. `unitsPerEm: number`
-4. `grid: { cols: number; rows: number; cellWidth: number; cellHeight: number; padding: number }`
-5. `glyphSlots: Array<{ glyphId: string; glyphName: string; codePoint?: number; kind: "base" | "mark" | "ligature" | "space"; slotIndex: number }>`
+3. `templateCharacterPreset: "latam-alnum" | "code-dev" | "latam-plus-code"`
+4. `templateCharacterSelection: { includeLatamAlnum: boolean; includeCodeChars: boolean }`
+5. `unitsPerEm: number`
+6. `grid: { cols: number; rows: number; cellWidth: number; cellHeight: number; padding: number }`
+7. `glyphSlots: Array<{ glyphId: string; glyphName: string; codePoint?: number; kind: "base" | "mark" | "ligature" | "space"; slotIndex: number }>`
 
 ### `TemplateMapping`
 
@@ -69,6 +71,7 @@ Nota: en v1 se importa solo SVG.
 1. `items: Array<{ glyphId: string; outline: GlyphOutline | null; bounds?: { xMin: number; yMin: number; xMax: number; yMax: number }; issues: string[] }>`
 2. `globalIssues: string[]`
 3. `isBlocking: boolean`
+4. `preview: Array<{ glyphId: string; codePoint?: number; status: "ok" | "warning" | "error" | "empty"; issueCodes: string[] }>`
 
 ## Eventos de dominio (disenio v1)
 

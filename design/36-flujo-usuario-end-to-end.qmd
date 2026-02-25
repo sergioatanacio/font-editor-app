@@ -7,26 +7,31 @@ Definir un flujo unico y trazable de usuario desde inicio de proyecto hasta expo
 ## Happy Path (E2E)
 
 1. Usuario entra a `InicioProyecto` y crea o abre proyecto.
-2. Usuario configura metadatos y metricas en `ConfiguracionFuente`.
-3. Usuario genera plantilla en `PlantillaSvg` y descarga SVG.
-4. Usuario edita SVG externamente (Illustrator/Inkscape).
-5. Usuario reimporta en `ImportacionSvg`.
-6. Sistema valida e integra outlines importados.
-7. Usuario ajusta glifos en `EditorGlifos` (unicode, outline, metricas).
-8. Usuario ejecuta readiness en `ValidacionExportacion`.
-9. Si readiness es valido, usuario exporta en `ExportacionTtf`.
-10. Sistema guarda archivo `.ttf` y confirma exito.
-11. Usuario guarda snapshot del proyecto (`GuardarAbrirProyecto`) cuando lo requiera.
+2. Usuario define caracteres con 2 checks (`includeLatamAlnum`, `includeCodeChars`).
+3. Usuario configura metadatos y metricas en `ConfiguracionFuente`.
+4. Usuario genera plantilla en `PlantillaSvg` y descarga SVG.
+5. Usuario edita SVG externamente (Illustrator/Inkscape).
+6. Usuario reimporta en `ImportacionSvg`.
+7. Sistema valida y construye `PrevisualizacionImportacion`.
+8. Usuario revisa rejilla de glifos, filtra issues y confirma aplicacion.
+9. Sistema aplica batch de importacion de forma atomica.
+10. Usuario ajusta glifos en `EditorGlifos` (unicode, outline, metricas).
+11. Usuario ejecuta readiness en `ValidacionExportacion`.
+12. Si readiness es valido, usuario exporta en `ExportacionTtf`.
+13. Sistema guarda archivo `.ttf` y confirma exito.
+14. Usuario guarda snapshot del proyecto (`GuardarAbrirProyecto`) cuando lo requiera.
 
 ## Flujo resumido (diagrama textual)
 
 ```text
-InicioProyecto
+InicioProyecto (2 checks)
   -> ConfiguracionFuente
   -> PlantillaSvg (generar/descargar)
   -> EdicionExternaSVG
   -> ImportacionSvg (FSM Import)
-      -> [ok] EditorGlifos
+      -> PrevisualizacionImportacion
+          -> [confirmar] aplicar import -> EditorGlifos
+          -> [cancelar] volver a idle
       -> [error] PanelErrores -> retry import
   -> ValidacionExportacion
       -> [ready] ExportacionTtf (FSM Export)
@@ -38,32 +43,32 @@ InicioProyecto
 
 ### Importacion SVG (FSM 1)
 
-1. `SELECT_FILE -> loadingFile -> parsing -> mapping -> validating`.
+1. `SELECT_FILE -> loadingFile -> parsing -> mapping -> validating -> previewReady`.
 2. Si `LOAD_FAIL` o `PARSE_FAIL`: se corta flujo y se informa detalle tecnico.
-3. Si `VALIDATION_FAIL` (`isBlocking=true`): no se aplican cambios al agregado.
-4. La importacion v1 es atomica: se aplica batch completo o no se aplica nada.
-5. UI transita a `PanelErrores` con detalle tecnico.
-6. Usuario corrige SVG y reintenta.
+3. Si `VALIDATION_FAIL` (`isBlocking=true`): se muestra preview bloqueante, sin aplicar cambios.
+4. `APPLY_REQUESTED` con `isBlocking=true` debe rechazar confirmacion.
+5. La importacion v1 es atomica: se aplica batch completo o no se aplica nada.
+6. Si preview expira: `IMPORT_PREVIEW_EXPIRED`.
 
 ### Exportacion TTF (FSM 2)
 
 1. `EXPORT_REQUESTED -> validating`.
-2. Si `VALID_FAIL` (`report.isReady=false`):
-3. No se exporta binario.
-4. UI muestra bloqueantes y vuelve a `EditorGlifos`/`ValidacionExportacion`.
-5. Si `VALID_OK`: `exporting -> saving -> done`.
+2. Si `VALID_FAIL` (`report.isReady=false`): no se exporta binario.
+3. UI muestra bloqueantes y vuelve a `EditorGlifos`/`ValidacionExportacion`.
+4. Si `VALID_OK`: `exporting -> saving -> done`.
 
 ## Mapa de pantalla -> operacion
 
 1. `InicioProyecto`: `CreateTypeface`, `LoadProjectFromFile`.
 2. `ConfiguracionFuente`: `UpdateTypefaceMetadata`, `UpdateTypefaceMetrics`.
 3. `PlantillaSvg`: `GenerateTemplateSvg`.
-4. `ImportacionSvg`: `ImportCompletedTemplateSvg` + `FSM 1`.
-5. `EditorGlifos`: `AssignUnicodeToGlyph`, `ReplaceGlyphOutline`, `UpdateGlyphMetrics`.
-6. `ValidacionExportacion`: `ValidateTypefaceForExport`.
-7. `ExportacionTtf`: `ExportTypefaceToTtf` + `FSM 2`.
-8. `GuardarAbrirProyecto`: `SaveProjectToFile`, `LoadProjectFromFile`.
-9. `PanelErrores`: representacion de `ErrorEnvelope`.
+4. `ImportacionSvg`: `PreviewTemplateImport` + `FSM 1`.
+5. `PrevisualizacionImportacion`: `CommitTemplateImportPreview` + `FSM 1`.
+6. `EditorGlifos`: `AssignUnicodeToGlyph`, `ReplaceGlyphOutline`, `UpdateGlyphMetrics`.
+7. `ValidacionExportacion`: `ValidateTypefaceForExport`.
+8. `ExportacionTtf`: `ExportTypefaceToTtf` + `FSM 2`.
+9. `GuardarAbrirProyecto`: `SaveProjectToFile`, `LoadProjectFromFile`.
+10. `PanelErrores`: representacion de `ErrorEnvelope`.
 
 ## Reglas UX operativas
 
@@ -72,6 +77,7 @@ InicioProyecto
 3. `error` bloquea accion actual; `warning` permite continuar con confirmacion.
 4. Siempre mostrar mensaje amigable y opcion de detalle tecnico (`code`, `context`).
 5. Guardado de proyecto debe estar disponible como accion global.
+6. La previsualizacion de importacion es obligatoria antes de aplicar cambios.
 
 ## Referencias normativas
 
@@ -79,3 +85,4 @@ InicioProyecto
 2. `20-aplicacion-casos-de-uso.qmd`.
 3. `21-fsm-tablas.qmd`.
 4. `18-matriz-errores.qmd`.
+5. `19-presets-y-glifos-requeridos.qmd`.

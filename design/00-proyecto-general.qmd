@@ -15,9 +15,10 @@ Este proyecto preserva el vector del diseñador como fuente de verdad.
 1. Crear proyecto tipográfico con metadatos y métricas base.
 2. Generar plantilla editable con mapa de glifos.
 3. Importar SVG (v1) y reconocer glifos por celda.
-4. Validar integridad geométrica y reglas tipográficas.
-5. Exportar `TTF`.
-6. Guardar/abrir proyecto localmente sin backend.
+4. Previsualizar glifos importados antes de aplicar cambios.
+5. Validar integridad geométrica y reglas tipográficas.
+6. Exportar `TTF`.
+7. Guardar/abrir proyecto localmente sin backend.
 
 ## Objetivos técnicos
 

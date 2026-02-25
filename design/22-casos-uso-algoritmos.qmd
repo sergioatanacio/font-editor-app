@@ -1,4 +1,4 @@
-# Casos de Uso: Algoritmos Operativos Cerrados
+﻿# Casos de Uso: Algoritmos Operativos Cerrados
 
 ## Regla comun de ejecucion
 
@@ -12,22 +12,37 @@
 ## `CreateTypeface`
 
 1. Validar campos de entrada.
-2. Crear IDs (`projectId`, `typefaceId`) si faltan.
-3. Construir `Typeface` en dominio.
-4. Construir `TypefaceProjectSnapshot` inicial.
-5. Guardar snapshot.
-6. Devolver `ok` con IDs.
+2. Validar `templateCharacterSelection` (al menos un check activo).
+3. Derivar `templateCharacterPreset` desde los 2 checks.
+4. Crear IDs (`projectId`, `typefaceId`) si faltan.
+5. Construir `Typeface` en dominio.
+6. Construir `TypefaceProjectSnapshot` inicial.
+7. Guardar snapshot.
+8. Devolver `ok` con IDs.
 
-## `ImportCompletedTemplateSvg`
+## `PreviewTemplateImport`
 
 1. Validar entrada y schema de mapping.
 2. Cargar `project`.
 3. Ejecutar `GlyphVectorImporter.importFromSvg`.
-4. Si `isBlocking=true`, devolver `IMPORT_BLOCKED_BY_VALIDATION` y no persistir cambios.
-5. Si `isBlocking=false`, aplicar batch completo de outlines de forma atomica (todo o nada).
-6. Actualizar `updatedAt`.
-7. Guardar snapshot.
-8. Devolver conteo e issues.
+4. Construir `glyphPreview[]` con estado por glifo (`ok|warning|error|empty`).
+5. Construir `summary` de importacion.
+6. Si `isBlocking=true`, devolver preview bloqueante sin persistir cambios.
+7. Persistir preview temporal con `previewId` y TTL local.
+8. Devolver preview para confirmacion en UI.
+
+## `CommitTemplateImportPreview`
+
+1. Cargar `project`.
+2. Cargar preview temporal por `previewId`.
+3. Si preview no existe: `IMPORT_PREVIEW_NOT_FOUND`.
+4. Si preview expiro: `IMPORT_PREVIEW_EXPIRED`.
+5. Si preview es bloqueante: `IMPORT_BLOCKED_BY_VALIDATION`.
+6. Aplicar batch completo de outlines de forma atomica (todo o nada).
+7. Actualizar `updatedAt`.
+8. Guardar snapshot.
+9. Invalidar preview temporal.
+10. Devolver conteo e issues.
 
 ## `ValidateTypefaceForExport`
 

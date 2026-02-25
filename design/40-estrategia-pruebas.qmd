@@ -19,6 +19,7 @@ Asegurar consistencia de dominio, estabilidad de flujos y preservacion de vector
 3. Invariantes de `Typeface`.
 4. Errores tipados esperados.
 5. `TypefaceExportReadinessPolicy`.
+6. Derivacion de preset por checks (`latam-alnum`, `code-dev`, `latam-plus-code`).
 
 ## Aplicacion: use cases
 
@@ -26,6 +27,8 @@ Asegurar consistencia de dominio, estabilidad de flujos y preservacion de vector
 2. Errores de entrada invalidos.
 3. Orquestacion correcta con puertos mocked.
 4. No mutacion directa de entidades.
+5. `PreviewTemplateImport` devuelve `glyphPreview[]` y `summary` consistentes.
+6. `CommitTemplateImportPreview` respeta TTL y bloqueos.
 
 ## FSM: pruebas de transiciones
 
@@ -33,6 +36,7 @@ Asegurar consistencia de dominio, estabilidad de flujos y preservacion de vector
 2. Eventos invalidos no cambian estado.
 3. Estados terminales se reinician solo con `RESET`.
 4. Nunca hay estados imposibles.
+5. En importacion, no hay aplicacion sin pasar por `previewReady`.
 
 ## Infraestructura: importador SVG
 
@@ -54,10 +58,12 @@ Asegurar consistencia de dominio, estabilidad de flujos y preservacion de vector
 1. Roundtrip serialize/deserialize.
 2. Carga de versiones antiguas migrables.
 3. Rechazo de snapshots corruptos.
+4. Migracion `1.0.0 -> 1.1.0` agrega `templateCharacterSelection` por defecto.
 
 ## Criterios de aceptacion v1
 
 1. Sin fallos en invariantes de dominio.
 2. Importacion SVG sin perdida de mapeo de celdas.
-3. Exportacion `TTF` bloqueada cuando readiness falla.
-4. Proyectos guardados cargan sin corrupcion.
+3. Previsualizacion de importacion obligatoria antes de aplicar cambios.
+4. Exportacion `TTF` bloqueada cuando readiness falla.
+5. Proyectos guardados cargan sin corrupcion.

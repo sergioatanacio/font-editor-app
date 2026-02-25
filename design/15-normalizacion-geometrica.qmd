@@ -87,6 +87,7 @@ Nota: self-intersection no bloquea en v1, pero genera warning.
 1. `items[]` con `glyphId`, `outline`, `bounds`, `issues[]`.
 2. `globalIssues[]`.
 3. `isBlocking` boolean.
+4. `preview[]` con `glyphId`, `codePoint?`, `status: "ok" | "warning" | "error" | "empty"`, `issueCodes[]`.
 
 ## Regla de BoundingBox v1
 

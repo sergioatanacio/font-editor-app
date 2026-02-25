@@ -33,6 +33,7 @@ Regla: `isReady = errors.length === 0`.
 2. `freeform`
 
 Definicion canonica de conjuntos requeridos: ver `19-presets-y-glifos-requeridos.qmd`.
+Nota: estos presets son de exportacion (`exportPreset`) y son independientes del preset de plantilla derivado de los 2 checks de UI.
 
 ## Reglas bloqueantes (errors)
 

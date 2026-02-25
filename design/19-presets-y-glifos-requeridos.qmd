@@ -2,57 +2,99 @@
 
 ## Objetivo
 
-Centralizar la definicion canonica de presets de exportacion y del conjunto minimo de glifos requerido por preset.
+Centralizar la definicion canonica de:
 
-## Presets soportados v1
+1. Presets de exportacion (`exportPreset`).
+2. Presets de caracteres para plantilla (`templateCharacterSelection`).
+
+## Modelo de seleccion de caracteres en UI (2 checks)
+
+En `InicioProyecto` existen solo 2 checks:
+
+1. `includeLatamAlnum` (default `true`)
+2. `includeCodeChars` (default `false`)
+
+Reglas:
+
+1. Si solo `includeLatamAlnum=true`: preset derivado `latam-alnum`.
+2. Si solo `includeCodeChars=true`: preset derivado `code-dev`.
+3. Si ambos `true`: preset derivado `latam-plus-code`.
+4. Si ambos `false`: error `INVALID_CHARACTER_SELECTION`.
+
+## Presets de exportacion v1 (sin cambios)
 
 1. `minimal-latin`
 2. `freeform`
 
+## Presets de plantilla v1
+
+1. `latam-alnum`
+2. `code-dev`
+3. `latam-plus-code` (union determinista de los 2 anteriores)
+
 ## Regla general
 
-1. `glyphSlots[]` es variable segun preset y configuracion del proyecto.
+1. `glyphSlots[]` se construye desde `templateCharacterSelection`.
 2. `glyphCount` en metadata de plantilla se calcula como `glyphSlots.length`.
-3. `glyphCount` de ejemplos documentales no es norma por si mismo.
+3. El orden de slots es determinista y estable por `slotIndex`.
+4. Siempre incluir `.notdef` como slot 0.
+5. El valor `glyphCount` de ejemplos documentales no es norma.
 
-## Preset `minimal-latin` (canonico)
+## Catalogo `latam-alnum` (v1 cerrado)
 
-Conjunto requerido:
-
-1. `.notdef`
-2. `space` (U+0020)
-3. `A-Z` (26)
-4. `a-z` (26)
-5. `0-9` (10)
-
-Total minimo requerido:
-
-1. `64` glifos.
-
-Reglas:
-
-1. Todos los glifos requeridos deben existir en `glyphSlots[]`.
-2. En readiness, glifo requerido faltante dispara `MISSING_REQUIRED_GLYPH`.
-3. En readiness, glifo requerido vacio (excepto `space`) dispara `EMPTY_REQUIRED_OUTLINE`.
-
-## Preset `freeform` (canonico)
-
-Conjunto requerido:
+Incluye:
 
 1. `.notdef`
-2. al menos 1 glifo adicional no vacio.
+2. `space` (`U+0020`)
+3. `A-Z` (`U+0041..U+005A`)
+4. `a-z` (`U+0061..U+007A`)
+5. `0-9` (`U+0030..U+0039`)
+6. Espanol: `U+00D1`, `U+00F1`, `U+00C1`, `U+00C9`, `U+00CD`, `U+00D3`, `U+00DA`, `U+00E1`, `U+00E9`, `U+00ED`, `U+00F3`, `U+00FA`, `U+00DC`, `U+00FC`
+7. Portugues: `U+00C0`, `U+00C2`, `U+00C3`, `U+00C7`, `U+00CA`, `U+00D4`, `U+00D5`, `U+00E0`, `U+00E2`, `U+00E3`, `U+00E7`, `U+00EA`, `U+00F4`, `U+00F5`
 
-Total funcional minimo:
+Total base esperado:
 
-1. `2` glifos (uno debe ser no vacio adicional a `.notdef`).
+1. `92` glifos (incluye `.notdef` y `space`).
 
-Reglas:
+## Catalogo `code-dev` (v1 cerrado)
 
-1. Se permite glifo sin unicode asignado.
-2. Readiness bloquea cuando no se cumple el minimo funcional.
+Incluye:
+
+1. `.notdef`
+2. `space` (`U+0020`)
+3. `A-Z` (`U+0041..U+005A`)
+4. `a-z` (`U+0061..U+007A`)
+5. `0-9` (`U+0030..U+0039`)
+6. Simbolos ASCII imprimibles para JS/Rust/C++:
+   `U+0021..U+002F`, `U+003A..U+0040`, `U+005B..U+0060`, `U+007B..U+007E`
+
+Total base esperado:
+
+1. `96` glifos (`U+0020..U+007E` + `.notdef`).
+
+## Catalogo `latam-plus-code` (v1 cerrado)
+
+1. Union de `latam-alnum` y `code-dev`.
+2. Sin duplicados por codepoint.
+3. Mantiene `.notdef` como slot 0.
+4. Mantiene orden estable por bloques: base ASCII, luego extension latam.
+
+## Reglas de readiness por exportPreset
+
+### `minimal-latin`
+
+1. Requiere como minimo: `.notdef`, `space`, `A-Z`, `a-z`, `0-9`.
+2. Si falta glifo requerido: `MISSING_REQUIRED_GLYPH`.
+3. Si outline requerido vacio (excepto `space`): `EMPTY_REQUIRED_OUTLINE`.
+
+### `freeform`
+
+1. Requiere `.notdef`.
+2. Requiere al menos 1 glifo adicional no vacio.
 
 ## Relacion con otros documentos
 
 1. `16-export-readiness-policy.qmd` define severidades y codigos de issue.
 2. `14-template-svg-spec.qmd` define contrato de plantilla y metadata.
-3. Este documento define el conjunto requerido por preset y prevalece ante duplicados.
+3. `33-ui-pantallas-flujos.qmd` define la interfaz de los 2 checks.
+4. Este documento prevalece ante duplicados sobre presets y conjuntos requeridos.

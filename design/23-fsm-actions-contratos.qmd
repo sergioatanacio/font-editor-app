@@ -1,4 +1,4 @@
-# FSM: Contratos de Actions y Eventos
+﻿# FSM: Contratos de Actions y Eventos
 
 ## ActionResult canonico
 
@@ -14,7 +14,7 @@ type ActionResult<TEvent> =
 2. `parseSvgAction(input: { svgContent: string }): ActionResult<"PARSE_OK" | "PARSE_FAIL">`
 3. `mapTemplateAction(input: { parsed: unknown }): ActionResult<"MAP_OK" | "MAP_FAIL">`
 4. `validateBatchAction(input: { batch: ImportedGlyphBatch }): ActionResult<"VALIDATION_OK" | "VALIDATION_FAIL">`
-5. `applyBatchAction(input: { projectId: string; batch: ImportedGlyphBatch }): ActionResult<"APPLY_OK" | "APPLY_FAIL">`
+5. `applyBatchAction(input: { projectId: string; previewId: string }): ActionResult<"APPLY_OK" | "APPLY_FAIL">`
 
 ## FSM Exportacion: actions
 

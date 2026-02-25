@@ -33,6 +33,7 @@ src/
           SvgTemplateExporterAdapter.ts
           SvgGlyphVectorImporterAdapter.ts
           TtfExporterAdapter.ts
+          ImportPreviewStoreAdapter.ts
         repositories/
           IndexedDbProjectRepositoryAdapter.ts
         serializers/

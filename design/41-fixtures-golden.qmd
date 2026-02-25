@@ -12,8 +12,12 @@ test-assets/
   snapshots/
     project-v1-valid.json
     project-v1-invalid.json
+    project-v1_1-default-selection.json
   golden/
     minimal-latin.ttf
+  preview/
+    preview-latam-ok.json
+    preview-code-with-issues.json
 ```
 
 ## Fixtures SVG obligatorios
@@ -22,6 +26,8 @@ test-assets/
 2. `valid-transforms.svg`: paths con transforms anidados.
 3. `invalid-missing-root.svg`: sin `ctf-template-root`.
 4. `invalid-open-contour.svg`: path sin `Z`.
+5. `valid-latam-alnum.svg`: plantilla completa para preset `latam-alnum`.
+6. `valid-code-dev.svg`: plantilla completa para preset `code-dev`.
 
 ## Golden TTF v1
 
@@ -33,6 +39,12 @@ test-assets/
 
 1. Si cambia version de libreria, regenerar golden y subir ADR.
 2. En misma version de stack, no se aceptan variaciones.
+
+## Fixtures de preview obligatorios
+
+1. `preview-latam-ok.json`: todos los glifos en `ok` o `warning` no bloqueante.
+2. `preview-code-with-issues.json`: mezcla de `ok`, `warning`, `error`, `empty`.
+3. Validar conteos de `summary` y filtros por estado.
 
 ## CI gates
 

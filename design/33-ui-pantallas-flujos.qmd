@@ -21,6 +21,7 @@ src/
 2. Cada accion de usuario dispara un caso de uso o evento FSM definido.
 3. Los errores se muestran usando `ErrorEnvelope` y matriz canonica.
 4. Toda accion bloqueante muestra estado de progreso y permite cancelacion cuando aplique.
+5. Importacion se confirma despues de una previsualizacion obligatoria.
 
 ## Mapa de navegacion v1
 
@@ -28,11 +29,12 @@ src/
 2. `ConfiguracionFuente`
 3. `PlantillaSvg`
 4. `ImportacionSvg`
-5. `EditorGlifos`
-6. `ValidacionExportacion`
-7. `ExportacionTtf`
-8. `GuardarAbrirProyecto`
-9. `PanelErrores`
+5. `PrevisualizacionImportacion`
+6. `EditorGlifos`
+7. `ValidacionExportacion`
+8. `ExportacionTtf`
+9. `GuardarAbrirProyecto`
+10. `PanelErrores`
 
 ## Pantallas y alcance
 
@@ -43,6 +45,8 @@ Responsabilidad:
 1. Crear proyecto nuevo.
 2. Abrir proyecto desde archivo (`.json` snapshot).
 3. Cargar ultimo proyecto local si existe.
+4. Seleccionar conjunto de caracteres con 2 checks:
+   `includeLatamAlnum` y `includeCodeChars`.
 
 Casos de uso vinculados:
 
@@ -66,7 +70,7 @@ Casos de uso vinculados:
 
 Responsabilidad:
 
-1. Generar plantilla SVG con mapeo de glifos.
+1. Generar plantilla SVG con mapeo de glifos segun preset derivado.
 2. Descargar plantilla para edicion externa.
 
 Casos de uso vinculados:
@@ -78,18 +82,32 @@ Casos de uso vinculados:
 Responsabilidad:
 
 1. Seleccionar archivo SVG completado.
-2. Ejecutar flujo FSM de importacion.
-3. Mostrar issues de importacion y resultado (`importedCount`, `isBlocking`).
+2. Ejecutar flujo FSM de importacion hasta obtener preview.
 
 Casos de uso vinculados:
 
-1. `ImportCompletedTemplateSvg`
+1. `PreviewTemplateImport`
 
 FSM vinculada:
 
-1. `FSM 1: ImportCompletedTemplateSvg`
+1. `FSM 1: PreviewTemplateImportAndCommit`
 
-### 5) `EditorGlifos`
+### 5) `PrevisualizacionImportacion`
+
+Responsabilidad:
+
+1. Mostrar rejilla de glifos tipo FontForge antes de aplicar.
+2. Mostrar estado por glifo: `ok`, `warning`, `error`, `empty`.
+3. Permitir filtro por estado y busqueda por caracter/codepoint.
+4. Mostrar panel lateral con detalle del glifo seleccionado.
+5. Permitir confirmar aplicacion o cancelar importacion.
+
+Casos de uso vinculados:
+
+1. `PreviewTemplateImport`
+2. `CommitTemplateImportPreview`
+
+### 6) `EditorGlifos`
 
 Responsabilidad:
 
@@ -104,7 +122,7 @@ Casos de uso vinculados:
 2. `ReplaceGlyphOutline`
 3. `UpdateGlyphMetrics`
 
-### 6) `ValidacionExportacion`
+### 7) `ValidacionExportacion`
 
 Responsabilidad:
 
@@ -115,7 +133,7 @@ Casos de uso vinculados:
 
 1. `ValidateTypefaceForExport`
 
-### 7) `ExportacionTtf`
+### 8) `ExportacionTtf`
 
 Responsabilidad:
 
@@ -131,7 +149,7 @@ FSM vinculada:
 
 1. `FSM 2: ExportTypefaceToTtf`
 
-### 8) `GuardarAbrirProyecto`
+### 9) `GuardarAbrirProyecto`
 
 Responsabilidad:
 
@@ -143,7 +161,7 @@ Casos de uso vinculados:
 1. `SaveProjectToFile`
 2. `LoadProjectFromFile`
 
-### 9) `PanelErrores`
+### 10) `PanelErrores`
 
 Responsabilidad:
 
@@ -156,12 +174,22 @@ Reglas:
 1. `error` bloquea accion actual.
 2. `warning` permite continuar con confirmacion.
 
+## Componentes UI obligatorios v1
+
+1. `CharacterSetChecks` (2 checks de inicio).
+2. `GlyphPreviewGrid` (rejilla virtualizable).
+3. `GlyphPreviewCard` (miniatura + estado).
+4. `GlyphStatusFilterBar` (ok/warning/error/empty).
+5. `GlyphDetailPanel` (issue codes, codepoint, bounds, acciones).
+6. `ImportSummaryPanel` (totales y bloqueantes).
+
 ## Reglas de estado de interfaz
 
 1. Cada pantalla mantiene estado local de presentacion (`idle`, `loading`, `success`, `error`).
 2. Estados de proceso critico (import/export) se delegan a FSM cerradas.
 3. Botones de accion bloqueante se deshabilitan durante ejecucion.
 4. Operaciones de larga duracion muestran progreso y opcion de cancelacion cuando exista `AbortController`.
+5. `CommitTemplateImportPreview` solo se habilita cuando `isBlocking=false`.
 
 ## Contrato de ViewModel minimo por pantalla
 

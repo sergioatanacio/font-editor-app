@@ -1,4 +1,4 @@
-# FSM Cerradas: Transiciones, Guards y Actions
+﻿# FSM Cerradas: Transiciones, Guards y Actions
 
 ## Convenciones
 
@@ -6,7 +6,7 @@
 2. Todo error operacional transita a `error`.
 3. Solo `RESET` sale de `error`.
 
-## FSM 1: ImportCompletedTemplateSvg
+## FSM 1: PreviewTemplateImportAndCommit
 
 ### Tabla de transiciones
 
@@ -19,8 +19,13 @@
 | `parsing` | `PARSE_FAIL` | - | registrar issue | `error` |
 | `mapping` | `MAP_OK` | sin faltantes requeridos (faltantes opcionales -> warning) | validar geometria | `validating` |
 | `mapping` | `MAP_FAIL` | - | registrar issue | `error` |
-| `validating` | `VALIDATION_OK` | `isBlocking=false` | aplicar outlines al agregado | `applied` |
-| `validating` | `VALIDATION_FAIL` | `isBlocking=true` | no aplicar cambios | `error` |
+| `validating` | `VALIDATION_OK` | - | construir preview | `previewReady` |
+| `validating` | `VALIDATION_FAIL` | `isBlocking=true` | construir preview bloqueante | `previewReady` |
+| `previewReady` | `APPLY_REQUESTED` | `isBlocking=false` | aplicar batch | `applying` |
+| `previewReady` | `APPLY_REQUESTED` | `isBlocking=true` | rechazar confirmacion | `error` |
+| `previewReady` | `CANCEL_IMPORT` | - | descartar preview | `idle` |
+| `applying` | `APPLY_OK` | - | persistir cambios | `applied` |
+| `applying` | `APPLY_FAIL` | - | registrar issue | `error` |
 | `applied` | `RESET` | - | limpiar contexto | `idle` |
 | `error` | `RESET` | - | limpiar contexto | `idle` |
 
@@ -31,7 +36,9 @@
 3. `PARSE_OK`: `templateMapping`
 4. `LOAD_FAIL`: `issues[]`
 5. `PARSE_FAIL`: `issues[]`
-6. `VALIDATION_FAIL`: `issues[]`, `isBlocking`
+6. `VALIDATION_OK`: `previewId`, `summary`, `isBlocking=false`
+7. `VALIDATION_FAIL`: `previewId`, `summary`, `issues[]`, `isBlocking=true`
+8. `APPLY_FAIL`: `issues[]`
 
 ## FSM 2: ExportTypefaceToTtf
 

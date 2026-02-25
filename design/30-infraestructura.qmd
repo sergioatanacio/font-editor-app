@@ -22,6 +22,7 @@
 3. Formato de intercambio: JSON snapshot versionado.
 4. Formato de importacion v1: solo SVG.
 5. PDF fuera de alcance v1.
+6. Preview de importacion se guarda en cache temporal local con TTL corto.
 
 ## Adaptadores concretos
 
@@ -33,6 +34,7 @@
 6. `BrowserFileSystemGatewayAdapter`
 7. `WebCryptoIdGeneratorAdapter`
 8. `SvgImportWorkerAdapter`
+9. `ImportPreviewStoreAdapter`
 
 ## Contratos de robustez
 
