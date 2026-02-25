@@ -1,0 +1,10 @@
+{
+  "schemaVersion": "1.0.0",
+  "projectId": "p-invalid",
+  "typeface": {
+    "id": "",
+    "metadata": { "familyName": "", "styleName": "" },
+    "metrics": { "unitsPerEm": 0, "ascender": 0, "descender": 0, "lineGap": -1, "baseline": 1 },
+    "glyphs": []
+  }
+}

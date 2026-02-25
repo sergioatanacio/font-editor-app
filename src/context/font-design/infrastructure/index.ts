@@ -1,3 +1,9 @@
+export * from "./adapters";
+export * from "./repositories";
+export * from "./serializers";
+export * from "./gateways";
+export * from "./workers";
+
 export * from "./persistence";
 export * from "./ids";
 export * from "./time";

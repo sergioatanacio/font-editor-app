@@ -1,0 +1,1 @@
+export { IndexedDbProjectRepositoryAdapter } from "./IndexedDbProjectRepositoryAdapter";

@@ -1,0 +1,1 @@
+export { BrowserFileSystemGatewayAdapter } from "./BrowserFileSystemGatewayAdapter";

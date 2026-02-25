@@ -1,0 +1,13 @@
+{
+  "previewId": "preview-stale",
+  "projectId": "p-valid",
+  "createdAt": "2026-01-01T00:00:00.000Z",
+  "expiresAt": "2026-01-01T00:15:00.000Z",
+  "baseProjectUpdatedAt": "2026-01-01T00:00:01.000Z",
+  "batch": {
+    "items": [],
+    "globalIssues": [],
+    "isBlocking": false,
+    "preview": []
+  }
+}

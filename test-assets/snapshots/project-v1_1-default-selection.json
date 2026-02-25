@@ -1,0 +1,15 @@
+{
+  "schemaVersion": "1.1.0",
+  "projectId": "p-v1-1",
+  "typeface": {
+    "id": "tf-1",
+    "metadata": { "familyName": "Demo", "styleName": "Regular" },
+    "metrics": { "unitsPerEm": 1000, "ascender": 800, "descender": -200, "lineGap": 200, "baseline": 0 },
+    "glyphs": []
+  },
+  "templateMapping": {},
+  "exportPreset": "minimal-latin",
+  "templateCharacterSelection": { "includeLatamAlnum": true, "includeCodeChars": false, "derivedPreset": "latam-alnum" },
+  "createdAt": "2026-01-01T00:00:00.000Z",
+  "updatedAt": "2026-01-01T00:00:00.000Z"
+}

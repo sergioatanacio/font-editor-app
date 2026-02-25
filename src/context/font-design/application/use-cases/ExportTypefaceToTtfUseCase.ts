@@ -51,7 +51,17 @@ export class ExportTypefaceToTtfUseCase
       return { ok: false, error: typeface.error };
     }
 
-    const exported = await this.fontBinaryExporter.exportTtf(typeface.value);
+    let exported;
+    try {
+      exported = await this.fontBinaryExporter.exportTtf(typeface.value);
+    } catch (error) {
+      return {
+        ok: false,
+        error: asAppError("USE_CASE_EXECUTION_ERROR", "Fallo tecnico durante la exportacion TTF.", {
+          cause: error instanceof Error ? error.message : "unknown",
+        }),
+      };
+    }
     if (exported.bytes.byteLength <= 0) {
       return {
         ok: false,

@@ -1,0 +1,1 @@
+export { SvgImportWorkerAdapter } from "./SvgImportWorkerAdapter";

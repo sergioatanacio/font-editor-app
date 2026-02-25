@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+  <metadata>{"templateSchemaVersion":"1.0.0","typefaceId":"tf_test","templateCharacterPreset":"latam-alnum","templateCharacterSelection":{"includeLatamAlnum":true,"includeCodeChars":false},"unitsPerEm":1000,"grid":{"cols":1,"rows":1,"cellWidth":120,"cellHeight":120,"padding":12},"glyphCount":1}</metadata>
+  <g id="ctf-template-root" transform="translate(0,0)">
+    <g id="cell-A" data-role="glyph-cell" data-glyph-id="A" data-glyph-name="A" data-codepoint="65" data-kind="base" data-slot-index="0" transform="translate(10,0)">
+      <g data-role="guides"></g>
+      <g data-role="drawing" transform="scale(0.8)">
+        <path transform="translate(5,0)" d="M10 110 L60 20 L110 110 Z" />
+      </g>
+      <g data-role="label"></g>
+    </g>
+  </g>
+</svg>

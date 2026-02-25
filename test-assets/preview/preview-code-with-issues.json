@@ -1,0 +1,19 @@
+{
+  "previewId": "preview-code-issues",
+  "projectId": "p-valid",
+  "createdAt": "2026-01-01T00:00:00.000Z",
+  "expiresAt": "2026-01-01T00:15:00.000Z",
+  "baseProjectUpdatedAt": "2026-01-01T00:00:00.000Z",
+  "batch": {
+    "items": [
+      { "glyphId": "A", "outline": null, "issues": [{ "code": "EMPTY_DRAWING", "message": "empty", "severity": "warning" }] },
+      { "glyphId": "B", "outline": null, "issues": [{ "code": "OPEN_CONTOUR", "message": "open", "severity": "error" }] }
+    ],
+    "globalIssues": [],
+    "isBlocking": true,
+    "preview": [
+      { "glyphId": "A", "status": "warning", "issues": [{ "code": "EMPTY_DRAWING", "message": "empty", "severity": "warning" }] },
+      { "glyphId": "B", "status": "error", "issues": [{ "code": "OPEN_CONTOUR", "message": "open", "severity": "error" }] }
+    ]
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "previewId": "preview-expired",
+  "projectId": "p-valid",
+  "createdAt": "2026-01-01T00:00:00.000Z",
+  "expiresAt": "2026-01-01T00:14:59.000Z",
+  "baseProjectUpdatedAt": "2026-01-01T00:00:00.000Z",
+  "batch": {
+    "items": [],
+    "globalIssues": [{ "code": "OPEN_CONTOUR", "message": "open", "severity": "error" }],
+    "isBlocking": true,
+    "preview": []
+  }
+}

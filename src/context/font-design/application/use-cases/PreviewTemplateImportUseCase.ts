@@ -64,7 +64,17 @@ export class PreviewTemplateImportUseCase
       };
     }
 
-    const batch = await this.glyphVectorImporter.importFromSvg(input.svgContent, input.mapping);
+    let batch;
+    try {
+      batch = await this.glyphVectorImporter.importFromSvg(input.svgContent, input.mapping);
+    } catch (error) {
+      return {
+        ok: false,
+        error: asAppError("USE_CASE_EXECUTION_ERROR", "Fallo tecnico durante el parseo/importacion SVG.", {
+          cause: error instanceof Error ? error.message : "unknown",
+        }),
+      };
+    }
     const nowIso = this.clock.now();
     const expiresAtIso = new Date(Date.parse(nowIso) + PreviewTemplateImportUseCase.PREVIEW_TTL_MS).toISOString();
 
