@@ -1,0 +1,184 @@
+﻿# Capa de Presentacion/UI (Especificacion Cerrada v1)
+
+## Objetivo
+
+Definir las pantallas, navegacion y reglas de estado de interfaz para operar los casos de uso sin introducir logica de negocio en la UI.
+
+## Ubicacion en el repositorio
+
+La UI se define en capa de presentacion (no en infraestructura), bajo:
+
+```text
+src/
+  context/font-design/
+    presentation/
+      ui/
+```
+
+## Principios de UI
+
+1. La UI no implementa reglas de dominio; solo orquesta casos de uso.
+2. Cada accion de usuario dispara un caso de uso o evento FSM definido.
+3. Los errores se muestran usando `ErrorEnvelope` y matriz canonica.
+4. Toda accion bloqueante muestra estado de progreso y permite cancelacion cuando aplique.
+
+## Mapa de navegacion v1
+
+1. `InicioProyecto`
+2. `ConfiguracionFuente`
+3. `PlantillaSvg`
+4. `ImportacionSvg`
+5. `EditorGlifos`
+6. `ValidacionExportacion`
+7. `ExportacionTtf`
+8. `GuardarAbrirProyecto`
+9. `PanelErrores`
+
+## Pantallas y alcance
+
+### 1) `InicioProyecto`
+
+Responsabilidad:
+
+1. Crear proyecto nuevo.
+2. Abrir proyecto desde archivo (`.json` snapshot).
+3. Cargar ultimo proyecto local si existe.
+
+Casos de uso vinculados:
+
+1. `CreateTypeface`
+2. `LoadProjectFromFile`
+
+### 2) `ConfiguracionFuente`
+
+Responsabilidad:
+
+1. Editar metadatos (`familyName`, `styleName`, `designer`, `version`).
+2. Editar metricas globales (`unitsPerEm`, `ascender`, `descender`, `lineGap`, `baseline`).
+
+Casos de uso vinculados:
+
+1. `UpdateTypefaceMetadata`
+2. `UpdateTypefaceMetrics`
+
+### 3) `PlantillaSvg`
+
+Responsabilidad:
+
+1. Generar plantilla SVG con mapeo de glifos.
+2. Descargar plantilla para edicion externa.
+
+Casos de uso vinculados:
+
+1. `GenerateTemplateSvg`
+
+### 4) `ImportacionSvg`
+
+Responsabilidad:
+
+1. Seleccionar archivo SVG completado.
+2. Ejecutar flujo FSM de importacion.
+3. Mostrar issues de importacion y resultado (`importedCount`, `isBlocking`).
+
+Casos de uso vinculados:
+
+1. `ImportCompletedTemplateSvg`
+
+FSM vinculada:
+
+1. `FSM 1: ImportCompletedTemplateSvg`
+
+### 5) `EditorGlifos`
+
+Responsabilidad:
+
+1. Listar glifos y su estado.
+2. Asignar Unicode por glifo.
+3. Reemplazar outline de glifo.
+4. Ajustar metricas por glifo (`advanceWidth`, `leftSideBearing`).
+
+Casos de uso vinculados:
+
+1. `AssignUnicodeToGlyph`
+2. `ReplaceGlyphOutline`
+3. `UpdateGlyphMetrics`
+
+### 6) `ValidacionExportacion`
+
+Responsabilidad:
+
+1. Ejecutar readiness antes de exportar.
+2. Mostrar `errors[]` y `warnings[]` por preset.
+
+Casos de uso vinculados:
+
+1. `ValidateTypefaceForExport`
+
+### 7) `ExportacionTtf`
+
+Responsabilidad:
+
+1. Solicitar exportacion TTF.
+2. Ejecutar flujo FSM de exportacion.
+3. Confirmar guardado exitoso o fallo.
+
+Casos de uso vinculados:
+
+1. `ExportTypefaceToTtf`
+
+FSM vinculada:
+
+1. `FSM 2: ExportTypefaceToTtf`
+
+### 8) `GuardarAbrirProyecto`
+
+Responsabilidad:
+
+1. Guardar proyecto actual a archivo.
+2. Abrir/importar snapshot de proyecto.
+
+Casos de uso vinculados:
+
+1. `SaveProjectToFile`
+2. `LoadProjectFromFile`
+
+### 9) `PanelErrores`
+
+Responsabilidad:
+
+1. Mostrar mensajes amigables por defecto.
+2. Mostrar codigo tecnico en detalle.
+3. Diferenciar severidad (`error` bloqueante, `warning` continuable).
+
+Reglas:
+
+1. `error` bloquea accion actual.
+2. `warning` permite continuar con confirmacion.
+
+## Reglas de estado de interfaz
+
+1. Cada pantalla mantiene estado local de presentacion (`idle`, `loading`, `success`, `error`).
+2. Estados de proceso critico (import/export) se delegan a FSM cerradas.
+3. Botones de accion bloqueante se deshabilitan durante ejecucion.
+4. Operaciones de larga duracion muestran progreso y opcion de cancelacion cuando exista `AbortController`.
+
+## Contrato de ViewModel minimo por pantalla
+
+```ts
+type ViewState<T> = {
+  status: "idle" | "loading" | "success" | "error";
+  data?: T;
+  error?: {
+    code: string;
+    message: string;
+    recoverable: boolean;
+  };
+  warnings?: Array<{ code: string; message: string }>;
+};
+```
+
+## Regla de arquitectura
+
+1. UI depende de `application` (casos de uso/FSM) y de tipos compartidos.
+2. UI no depende de implementaciones concretas de infraestructura.
+3. Inyeccion de dependencias resuelta en el punto de arranque de la app (`main`).

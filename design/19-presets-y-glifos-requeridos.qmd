@@ -1,0 +1,58 @@
+﻿# Especificacion Cerrada: Presets y Glifos Requeridos v1
+
+## Objetivo
+
+Centralizar la definicion canonica de presets de exportacion y del conjunto minimo de glifos requerido por preset.
+
+## Presets soportados v1
+
+1. `minimal-latin`
+2. `freeform`
+
+## Regla general
+
+1. `glyphSlots[]` es variable segun preset y configuracion del proyecto.
+2. `glyphCount` en metadata de plantilla se calcula como `glyphSlots.length`.
+3. `glyphCount` de ejemplos documentales no es norma por si mismo.
+
+## Preset `minimal-latin` (canonico)
+
+Conjunto requerido:
+
+1. `.notdef`
+2. `space` (U+0020)
+3. `A-Z` (26)
+4. `a-z` (26)
+5. `0-9` (10)
+
+Total minimo requerido:
+
+1. `64` glifos.
+
+Reglas:
+
+1. Todos los glifos requeridos deben existir en `glyphSlots[]`.
+2. En readiness, glifo requerido faltante dispara `MISSING_REQUIRED_GLYPH`.
+3. En readiness, glifo requerido vacio (excepto `space`) dispara `EMPTY_REQUIRED_OUTLINE`.
+
+## Preset `freeform` (canonico)
+
+Conjunto requerido:
+
+1. `.notdef`
+2. al menos 1 glifo adicional no vacio.
+
+Total funcional minimo:
+
+1. `2` glifos (uno debe ser no vacio adicional a `.notdef`).
+
+Reglas:
+
+1. Se permite glifo sin unicode asignado.
+2. Readiness bloquea cuando no se cumple el minimo funcional.
+
+## Relacion con otros documentos
+
+1. `16-export-readiness-policy.qmd` define severidades y codigos de issue.
+2. `14-template-svg-spec.qmd` define contrato de plantilla y metadata.
+3. Este documento define el conjunto requerido por preset y prevalece ante duplicados.

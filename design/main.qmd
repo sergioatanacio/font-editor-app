@@ -44,6 +44,10 @@ Este archivo compila toda la documentación funcional y técnica del proyecto.
 
 {{< include 32-cancelacion-timeout.qmd >}}
 
+{{< include 33-ui-pantallas-flujos.qmd >}}
+
+{{< include 34-estructura-carpetas-archivos.qmd >}}
+
 {{< include 40-estrategia-pruebas.qmd >}}
 
 {{< include 41-fixtures-golden.qmd >}}

@@ -1,0 +1,121 @@
+﻿# Estructura de Carpetas y Archivos (Especificacion Cerrada v1)
+
+## Objetivo
+
+Definir una estructura estable de codigo para mantener separacion de capas, escalabilidad y trazabilidad entre dominio, aplicacion, UI e infraestructura.
+
+## Arbol de referencia v1 (alineado con infraestructura v1)
+
+```text
+src/
+  context/
+    font-design/
+      domain/
+        entities/
+        value-objects/
+        services/
+        errors/
+        ports/
+      application/
+        use-cases/
+        dto/
+        fsm/
+        actions/
+      presentation/
+        ui/
+          screens/
+          components/
+          state/
+          routing/
+          mappers/
+      infrastructure/
+        adapters/
+          SvgTemplateExporterAdapter.ts
+          SvgGlyphVectorImporterAdapter.ts
+          TtfExporterAdapter.ts
+        repositories/
+          IndexedDbProjectRepositoryAdapter.ts
+        serializers/
+          JsonProjectSerializerAdapter.ts
+        gateways/
+          BrowserFileSystemGatewayAdapter.ts
+        ids/
+          WebCryptoIdGeneratorAdapter.ts
+        workers/
+          SvgImportWorkerAdapter.ts
+  shared/
+    result/
+    errors/
+    types/
+    utils/
+
+tests/
+  unit/
+    domain/
+    application/
+  integration/
+    infrastructure/
+    workflows/
+  e2e/
+
+docs/
+  decisions/
+  specs/
+```
+
+## Regla de consistencia con `30-infraestructura.qmd`
+
+1. El subarbol `src/context/font-design/infrastructure/` es canonico y no se renombra sin actualizar primero `30-infraestructura.qmd`.
+2. `34-estructura-carpetas-archivos.qmd` extiende estructura global, pero no redefine adaptadores ni rutas de infraestructura.
+
+## Reglas de ubicacion
+
+1. `domain/` no importa desde `application/`, `presentation/` ni `infrastructure/`.
+2. `application/` solo depende de `domain/` y contratos compartidos.
+3. `presentation/` depende de `application/` y nunca de adaptadores concretos.
+4. `infrastructure/` implementa puertos definidos en `domain/` y usados por `application/`.
+5. El ensamblado de dependencias se resuelve en el punto de arranque (`main`), fuera del dominio.
+
+## Convenciones de nombres
+
+1. Entidades: `PascalCase` (`Typeface.ts`, `Glyph.ts`).
+2. Value Objects: `PascalCase` con sufijo semantico (`FontMetrics.ts`, `GlyphOutline.ts`).
+3. Casos de uso: verbo + objeto (`CreateTypeface.ts`, `ExportTypefaceToTtf.ts`).
+4. Adaptadores: sufijo `Adapter` (`TtfExporterAdapter.ts`).
+5. Repositorios concretos: sufijo `RepositoryAdapter`.
+6. Pantallas: sufijo `Screen` (`ImportacionSvgScreen.tsx`).
+7. Componentes: sufijo `Panel`, `Card`, `Form` segun responsabilidad.
+
+## Convenciones de archivos por capa
+
+1. Cada caso de uso incluye `Input` y `Output` en `dto/` o en el mismo archivo si es pequeno.
+2. Cada FSM define: `states`, `events`, `guards`, `actions`, `reducer`.
+3. Cada pantalla define: `ViewModel`, `actions`, `selectors` y render.
+4. Cada adaptador declara explicitamente el puerto que implementa.
+
+## Imports y limites
+
+1. Usar imports absolutos por alias de capa (ej: `@font-design/domain/...`).
+2. Prohibir imports relativos que crucen capas (`../../infrastructure/...`) desde UI o dominio.
+3. Evitar barrels globales si rompen trazabilidad; permitir barrels por carpeta pequena.
+
+## Ubicacion de pruebas
+
+1. `tests/unit/domain`: invariantes, entidades, value objects.
+2. `tests/unit/application`: casos de uso puros con dobles de puertos.
+3. `tests/integration/infrastructure`: adaptadores reales (IndexedDB, SVG importer, TTF exporter).
+4. `tests/integration/workflows`: flujos completos import/export con FSM.
+5. `tests/e2e`: escenarios de UI y archivos en navegador.
+
+## Ubicacion de fixtures y golden
+
+1. `tests/fixtures/svg/` para plantillas y SVG de entrada.
+2. `tests/fixtures/projects/` para snapshots JSON versionados.
+3. `tests/golden/ttf/` para binarios o hashes esperados.
+
+## Regla de crecimiento
+
+1. Nuevas capacidades tipograficas deben entrar primero por `domain` + `application`.
+2. Luego se agregan adaptadores de `infrastructure`.
+3. Finalmente se exponen en `presentation/ui`.
+4. Ningun feature se considera completo sin pruebas unitarias e integracion minima.
