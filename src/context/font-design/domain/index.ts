@@ -1,4 +1,4 @@
-﻿export { DomainError } from "./errors/DomainError";
+export { DomainError } from "./errors/DomainError";
 
 export { Typeface } from "./entities/Typeface";
 export { Glyph } from "./entities/Glyph";
@@ -11,3 +11,5 @@ export { GlyphMetrics } from "./value-objects/GlyphMetrics";
 export { FontMetrics } from "./value-objects/FontMetrics";
 export { TypefaceMetadata } from "./value-objects/TypefaceMetadata";
 export { GlyphOutline } from "./value-objects/GlyphOutline";
+
+export * from "./ports";

@@ -1,10 +1,14 @@
 # OS
 .DS_Store
 Thumbs.db
+desktop.ini
 
 # Editor
 .idea/
 .vscode/
+*.swp
+*.swo
+*~
 
 # Quarto build artifacts
 .quarto/
@@ -18,3 +22,25 @@ _site/
 /design/main_files/
 
 /design/main_files/
+
+# Node / TypeScript
+node_modules/
+dist/
+build/
+*.tsbuildinfo
+
+# Tests / coverage
+coverage/
+.nyc_output/
+vitest.config.timestamp-*
+
+# Package manager cache/logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Environment files
+.env
+.env.local
+.env.*.local

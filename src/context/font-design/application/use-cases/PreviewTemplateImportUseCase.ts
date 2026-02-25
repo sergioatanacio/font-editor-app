@@ -1,0 +1,106 @@
+﻿import type { UseCase } from "../common/UseCase";
+import type { AppError } from "../../shared/errors/AppError";
+import type { Result } from "../../shared/result/Result";
+import type {
+  Clock,
+  GlyphVectorImporter,
+  ImportIssue,
+  ImportPreviewStore,
+  ImportSummary,
+  ProjectRepository,
+} from "../../domain/ports";
+
+export interface PreviewTemplateImportInput {
+  projectId: string;
+  svgContent: string;
+  mapping: unknown;
+}
+
+export interface PreviewTemplateImportOutput {
+  previewId: string;
+  glyphPreview: ReadonlyArray<{
+    glyphId: string;
+    codePoint?: number;
+    status: "ok" | "warning" | "error" | "empty";
+    issues: readonly ImportIssue[];
+  }>;
+  summary: ImportSummary;
+  issues: readonly ImportIssue[];
+  isBlocking: boolean;
+  expiresAt: string;
+}
+
+function asAppError(code: string, message: string, context?: Record<string, unknown>): AppError {
+  return {
+    code,
+    message,
+    context,
+    layer: "application",
+    severity: "error",
+    recoverable: true,
+  };
+}
+
+export class PreviewTemplateImportUseCase
+  implements UseCase<PreviewTemplateImportInput, PreviewTemplateImportOutput, AppError>
+{
+  private static readonly PREVIEW_TTL_MS = 900_000;
+
+  constructor(
+    private readonly projectRepository: ProjectRepository,
+    private readonly glyphVectorImporter: GlyphVectorImporter,
+    private readonly importPreviewStore: ImportPreviewStore,
+    private readonly clock: Clock,
+  ) {}
+
+  async execute(
+    input: PreviewTemplateImportInput,
+  ): Promise<Result<PreviewTemplateImportOutput, AppError>> {
+    const project = await this.projectRepository.load(input.projectId);
+    if (!project) {
+      return {
+        ok: false,
+        error: asAppError("PROJECT_NOT_FOUND", "No se encontro el proyecto."),
+      };
+    }
+
+    const batch = await this.glyphVectorImporter.importFromSvg(input.svgContent, input.mapping);
+    const nowIso = this.clock.now();
+    const expiresAtIso = new Date(Date.parse(nowIso) + PreviewTemplateImportUseCase.PREVIEW_TTL_MS).toISOString();
+
+    const summary: ImportSummary = {
+      total: batch.preview.length,
+      ok: batch.preview.filter((x) => x.status === "ok").length,
+      warning: batch.preview.filter((x) => x.status === "warning").length,
+      error: batch.preview.filter((x) => x.status === "error").length,
+      empty: batch.preview.filter((x) => x.status === "empty").length,
+      blockingCount: [...batch.globalIssues, ...batch.preview.flatMap((x) => x.issues)].filter(
+        (i) => i.severity === "error",
+      ).length,
+    };
+
+    const issues = [...batch.globalIssues, ...batch.preview.flatMap((x) => x.issues)];
+    const previewId = `${input.projectId}:${Date.parse(nowIso)}`;
+
+    await this.importPreviewStore.save({
+      previewId,
+      projectId: input.projectId,
+      batch,
+      createdAt: nowIso,
+      expiresAt: expiresAtIso,
+      baseProjectUpdatedAt: project.updatedAt,
+    });
+
+    return {
+      ok: true,
+      value: {
+        previewId,
+        glyphPreview: batch.preview,
+        summary,
+        issues,
+        isBlocking: batch.isBlocking,
+        expiresAt: expiresAtIso,
+      },
+    };
+  }
+}
