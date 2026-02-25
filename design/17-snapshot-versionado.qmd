@@ -61,5 +61,5 @@ Garantizar persistencia offline estable y migrable entre versiones.
 
 ## Almacenamiento local
 
-1. Repositorio principal: IndexedDB.
+1. Repositorio principal: `ProjectRepository` implementado en IndexedDB.
 2. Export/import manual `.json` como backup interoperable.

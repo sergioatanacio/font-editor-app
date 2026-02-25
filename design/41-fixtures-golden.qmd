@@ -1,0 +1,40 @@
+# Fixtures y Golden Tests (Plan Ejecutable)
+
+## Carpeta canonica
+
+```text
+test-assets/
+  svg/
+    valid-basic.svg
+    valid-transforms.svg
+    invalid-missing-root.svg
+    invalid-open-contour.svg
+  snapshots/
+    project-v1-valid.json
+    project-v1-invalid.json
+  golden/
+    minimal-latin.ttf
+```
+
+## Fixtures SVG obligatorios
+
+1. `valid-basic.svg`: 3 glifos (`.notdef`, `space`, `A`) validos.
+2. `valid-transforms.svg`: paths con transforms anidados.
+3. `invalid-missing-root.svg`: sin `ctf-template-root`.
+4. `invalid-open-contour.svg`: path sin `Z`.
+
+## Golden TTF v1
+
+1. `minimal-latin.ttf` generado desde fixture determinista.
+2. Criterio primario: tamanio en bytes exacto.
+3. Criterio secundario: checksum SHA-256 exacto.
+
+## Tolerancias
+
+1. Si cambia version de libreria, regenerar golden y subir ADR.
+2. En misma version de stack, no se aceptan variaciones.
+
+## CI gates
+
+1. Falla pipeline si fixtures criticos no pasan.
+2. Falla pipeline si checksum golden no coincide.

@@ -1,0 +1,29 @@
+# FSM: Contratos de Actions y Eventos
+
+## ActionResult canonico
+
+```ts
+type ActionResult<TEvent> =
+  | { ok: true; emit: TEvent }
+  | { ok: false; emit: TEvent };
+```
+
+## FSM Importacion: actions
+
+1. `loadFileAction(input: { file: File }): ActionResult<"FILE_LOADED" | "PARSE_FAIL">`
+2. `parseSvgAction(input: { svgContent: string }): ActionResult<"PARSE_OK" | "PARSE_FAIL">`
+3. `mapTemplateAction(input: { parsed: unknown }): ActionResult<"MAP_OK" | "MAP_FAIL">`
+4. `validateBatchAction(input: { batch: ImportedGlyphBatch }): ActionResult<"VALIDATION_OK" | "VALIDATION_FAIL">`
+5. `applyBatchAction(input: { projectId: string; batch: ImportedGlyphBatch }): ActionResult<"APPLY_OK" | "APPLY_FAIL">`
+
+## FSM Exportacion: actions
+
+1. `validateReadinessAction(input: { projectId: string }): ActionResult<"VALID_OK" | "VALID_FAIL">`
+2. `exportTtfAction(input: { projectId: string }): ActionResult<"EXPORT_OK" | "EXPORT_FAIL">`
+3. `saveFileAction(input: { filename: string; bytes: Uint8Array }): ActionResult<"SAVE_OK" | "SAVE_FAIL">`
+
+## Reglas de error y evento
+
+1. Toda action captura excepciones y emite evento `*_FAIL`.
+2. Ninguna action cambia estado global directamente.
+3. El estado solo cambia por tabla de transiciones FSM.

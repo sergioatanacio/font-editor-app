@@ -6,21 +6,22 @@ Aislar el dominio de librerias, UI y detalles tecnicos.
 
 ## Puertos de salida (driven adapters)
 
-1. `TypefaceRepository`
+1. `ProjectRepository`
 2. `TemplateExporter`
 3. `GlyphVectorImporter`
 4. `FontBinaryExporter`
 5. `ProjectSerializer`
 6. `FileSystemGateway`
-7. `Clock` (opcional)
+7. `Clock`
 8. `IdGenerator`
 
 ## Contratos minimos
 
-### `TypefaceRepository`
+### `ProjectRepository`
 
-1. `save(typeface: Typeface): Promise<void>`
-2. `load(typefaceId: TypefaceId): Promise<Typeface | null>`
+1. `save(project: TypefaceProjectSnapshot): Promise<void>`
+2. `load(projectId: string): Promise<TypefaceProjectSnapshot | null>`
+3. `delete(projectId: string): Promise<void>`
 
 ### `TemplateExporter`
 

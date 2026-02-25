@@ -1,0 +1,28 @@
+# Especificacion Cerrada: Cancelacion y Timeouts
+
+## Objetivo
+
+Evitar bloqueos de UI en importacion/exportacion pesada.
+
+## Mecanismo v1
+
+1. Parseo SVG en `Web Worker`.
+2. Cancelacion via `AbortController`.
+3. Cooperacion por chunks de 200 paths por iteracion.
+
+## Timeouts cerrados
+
+1. Parseo/importacion: 15 segundos.
+2. Exportacion TTF: 10 segundos.
+3. Guardado archivo: 10 segundos.
+
+## Politica de timeout
+
+1. Al exceder timeout: abortar operacion.
+2. Emitir error `USE_CASE_EXECUTION_ERROR` con `context.reason="timeout"`.
+3. FSM transita a `error`.
+
+## Reglas de recuperacion
+
+1. No se persisten cambios parciales cuando falla importacion bloqueante.
+2. El usuario puede reintentar desde estado `idle` tras `RESET`.

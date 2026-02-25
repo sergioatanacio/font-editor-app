@@ -43,12 +43,29 @@ Mapear `Typeface` de dominio a binario `TTF` de forma determinista.
 1. Comandos admitidos: `M`, `L`, `Q`, `C`, `Z`.
 2. Coordenadas ya normalizadas en espacio tipografico.
 3. Contornos deben llegar cerrados.
+4. En `opentype.js`, `Q` se exporta como curva cuadratica nativa.
+5. `C` se segmenta a cuadraticas usando aproximacion con tolerancia `0.25` unidades.
+6. Regla de winding: no se reorientan contornos en exportador v1.
 
 ## Precision y redondeo
 
 1. Coordenadas a entero con `round()`.
 2. Metricas enteras.
 3. No usar normalizacion adicional en exportador.
+
+## Tablas TTF minimas y defaults v1
+
+1. `head`, `hhea`, `maxp`, `hmtx`, `cmap`, `name`, `post`, `glyf`, `loca` obligatorias.
+2. `OS/2` se genera con defaults:
+   `usWeightClass=400`, `usWidthClass=5`, `fsSelection=0x0040` (Regular), `sTypoAscender/Descender` desde dominio.
+3. `kern` no se genera en v1.
+4. `GSUB/GPOS` no se generan en v1.
+
+## Edge cases de unicode
+
+1. Glifo sin unicode se exporta a `glyf` pero no entra en `cmap`.
+2. Unicode duplicado no llega al exportador (bloqueado en dominio/readiness).
+3. Ligaduras v1 sin GSUB: se tratan como glifos sin mapeo avanzado.
 
 ## Salida del adaptador
 

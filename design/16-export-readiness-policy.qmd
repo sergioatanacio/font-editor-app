@@ -12,6 +12,14 @@ Definir criterios exactos para permitir o bloquear exportacion `TTF`.
 2. `errors: ExportIssue[]`
 3. `warnings: ExportIssue[]`
 
+`ExportIssue`:
+
+1. `code: ExportIssueCode`
+2. `message: string`
+3. `severity: "error" | "warning"`
+4. `glyphId?: string`
+5. `context?: Record<string, unknown>`
+
 Regla: `isReady = errors.length === 0`.
 
 ## Severidades

@@ -44,11 +44,16 @@ Convertir vectores SVG a `GlyphOutline` preservando trazos del diseniador y evit
 1. Sistema origen: coordenadas del SVG.
 2. Sistema destino: espacio tipografico con baseline 0.
 3. Invertir eje Y para dominio tipografico.
-4. Escalar por factor:
+4. Definicion cerrada:
+
+`cellEmHeightReference = cellHeight - (2 * padding)`
+
+5. Escalar por factor:
 
 `scale = unitsPerEm / cellEmHeightReference`
 
-5. Trasladar origen segun caja de celda.
+6. Trasladar origen segun caja de celda.
+7. Redondeo de coordenadas normalizadas a 4 decimales.
 
 ## Paso 6: NormalizeCommands
 
@@ -70,7 +75,8 @@ Nota: self-intersection no bloquea en v1, pero genera warning.
 
 1. Construir `Contour` y `GlyphOutline`.
 2. Si celda vacia y tipo `space`: valido.
-3. Si celda vacia y tipo no `space`: warning o error segun politica de exportacion.
+3. Si celda vacia y tipo no `space`: `EMPTY_DRAWING` warning en importacion.
+4. El bloqueo final de exportacion se decide en `ExportReadinessPolicy`.
 
 ## Contrato de salida
 

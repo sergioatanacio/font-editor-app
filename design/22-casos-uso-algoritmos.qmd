@@ -1,0 +1,61 @@
+# Casos de Uso: Algoritmos Operativos Cerrados
+
+## Regla comun de ejecucion
+
+1. Validar `Input DTO`.
+2. Cargar `project` desde `ProjectRepository` cuando aplique.
+3. Ejecutar dominio/politicas.
+4. Persistir en `ProjectRepository` solo si hay cambios.
+5. Devolver `Result`.
+6. Capturar errores tecnicos como `USE_CASE_EXECUTION_ERROR`.
+
+## `CreateTypeface`
+
+1. Validar campos de entrada.
+2. Crear IDs (`projectId`, `typefaceId`) si faltan.
+3. Construir `Typeface` en dominio.
+4. Construir `TypefaceProjectSnapshot` inicial.
+5. Guardar snapshot.
+6. Devolver `ok` con IDs.
+
+## `ImportCompletedTemplateSvg`
+
+1. Validar entrada y schema de mapping.
+2. Cargar `project`.
+3. Ejecutar `GlyphVectorImporter.importFromSvg`.
+4. Si `isBlocking=true`, devolver `IMPORT_BLOCKED_BY_VALIDATION`.
+5. Aplicar outlines item por item al agregado.
+6. Actualizar `updatedAt`.
+7. Guardar snapshot.
+8. Devolver conteo e issues.
+
+## `ValidateTypefaceForExport`
+
+1. Cargar `project`.
+2. Ejecutar `TypefaceExportReadinessPolicy`.
+3. Devolver reporte canonico.
+
+## `ExportTypefaceToTtf`
+
+1. Cargar `project`.
+2. Ejecutar `ValidateTypefaceForExport`.
+3. Si `isReady=false`, devolver `EXPORT_BLOCKED_BY_READINESS`.
+4. Generar bytes con `FontBinaryExporter`.
+5. Guardar archivo con `FileSystemGateway`.
+6. Devolver nombre y tamanio.
+
+## `SaveProjectToFile`
+
+1. Cargar `project`.
+2. Serializar con `ProjectSerializer`.
+3. Guardar archivo.
+4. Devolver metadatos de salida.
+
+## `LoadProjectFromFile`
+
+1. Deserializar contenido.
+2. Validar `schemaVersion`.
+3. Migrar si aplica.
+4. Validar invariantes de snapshot.
+5. Guardar en `ProjectRepository`.
+6. Devolver IDs.

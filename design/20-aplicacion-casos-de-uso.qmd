@@ -1,13 +1,15 @@
 # Capa de Aplicacion y Casos de Uso (Especificacion Cerrada)
 
-## Contrato comun `Result`
+## Contrato comun `Result` y error canonico
 
 ```ts
 type AppError = {
   code: string;
-  message: string;
+  layer: "domain" | "application" | "infrastructure";
   severity: "error" | "warning";
+  message: string;
   context?: Record<string, unknown>;
+  recoverable: boolean;
 };
 
 type Result<T> =
@@ -27,99 +29,93 @@ type Result<T> =
 
 ### 1) `CreateTypeface`
 
-Input:
-
-1. `projectId: string`
-2. `familyName: string`
-3. `styleName: string`
-4. `unitsPerEm: number`
-5. `exportPreset: "minimal-latin" | "freeform"`
-
-Output:
-
-1. `typefaceId: string`
-2. `projectId: string`
+Input: `projectId`, `familyName`, `styleName`, `unitsPerEm`, `exportPreset`  
+Output: `typefaceId`, `projectId`  
+Puertos: `ProjectRepository`, `Clock`, `IdGenerator`
 
 Errores:
 
 1. `INVALID_INPUT`
 2. `INVALID_TYPEFACE_METADATA`
 3. `INVALID_FONT_METRICS`
+4. `USE_CASE_EXECUTION_ERROR`
 
 ### 2) `UpdateTypefaceMetadata`
 
-Input: `typefaceId`, `familyName`, `styleName`, `designer?`, `version?`  
-Output: `typefaceId`, `updatedAt`
+Input: `projectId`, `familyName`, `styleName`, `designer?`, `version?`  
+Output: `projectId`, `updatedAt`  
+Puertos: `ProjectRepository`, `Clock`
 
 ### 3) `UpdateTypefaceMetrics`
 
-Input: `typefaceId`, `unitsPerEm`, `ascender`, `descender`, `lineGap`, `baseline`  
-Output: `typefaceId`, `updatedAt`
+Input: `projectId`, `unitsPerEm`, `ascender`, `descender`, `lineGap`, `baseline`  
+Output: `projectId`, `updatedAt`  
+Puertos: `ProjectRepository`, `Clock`
 
 ### 4) `GenerateTemplateSvg`
 
-Input: `typefaceId`, `exportPreset`  
-Output: `filename`, `svgContent`, `mapping`
-
-Puertos: `TemplateExporter`, `FileSystemGateway` (opcional guardado inmediato).
+Input: `projectId`  
+Output: `filename`, `svgContent`, `mapping`  
+Puertos: `ProjectRepository`, `TemplateExporter`
 
 ### 5) `ImportCompletedTemplateSvg`
 
-Input: `typefaceId`, `svgContent`, `mapping`  
-Output: `typefaceId`, `importedCount`, `issues[]`, `isBlocking`
-
-Puertos: `GlyphVectorImporter`, `TypefaceRepository`.
+Input: `projectId`, `svgContent`, `mapping`  
+Output: `projectId`, `importedCount`, `issues[]`, `isBlocking`  
+Puertos: `ProjectRepository`, `GlyphVectorImporter`, `Clock`
 
 ### 6) `AssignUnicodeToGlyph`
 
-Input: `typefaceId`, `glyphId`, `codePoint`  
-Output: `typefaceId`, `glyphId`
+Input: `projectId`, `glyphId`, `codePoint`  
+Output: `projectId`, `glyphId`  
+Puertos: `ProjectRepository`, `Clock`
 
 ### 7) `ReplaceGlyphOutline`
 
-Input: `typefaceId`, `glyphId`, `outline`  
-Output: `typefaceId`, `glyphId`
+Input: `projectId`, `glyphId`, `outline`  
+Output: `projectId`, `glyphId`  
+Puertos: `ProjectRepository`, `Clock`
 
 ### 8) `UpdateGlyphMetrics`
 
-Input: `typefaceId`, `glyphId`, `advanceWidth`, `leftSideBearing`  
-Output: `typefaceId`, `glyphId`
+Input: `projectId`, `glyphId`, `advanceWidth`, `leftSideBearing`  
+Output: `projectId`, `glyphId`  
+Puertos: `ProjectRepository`, `Clock`
 
 ### 9) `ValidateTypefaceForExport`
 
-Input: `typefaceId`, `exportPreset`  
-Output: `report` (`isReady`, `errors[]`, `warnings[]`)
+Input: `projectId`, `exportPreset`  
+Output: `report` (`isReady`, `errors[]`, `warnings[]`)  
+Puertos: `ProjectRepository`
 
 ### 10) `ExportTypefaceToTtf`
 
-Input: `typefaceId`, `exportPreset`, `filename`  
-Output: `filename`, `byteLength`, `warnings[]`
-
-Puertos: `FontBinaryExporter`, `FileSystemGateway`.
+Input: `projectId`, `filename`  
+Output: `filename`, `byteLength`, `warnings[]`  
+Puertos: `ProjectRepository`, `FontBinaryExporter`, `FileSystemGateway`
 
 ### 11) `SaveProjectToFile`
 
 Input: `projectId`, `filename`  
-Output: `filename`, `byteLength`
-
-Puertos: `ProjectSerializer`, `FileSystemGateway`.
+Output: `filename`, `byteLength`  
+Puertos: `ProjectRepository`, `ProjectSerializer`, `FileSystemGateway`
 
 ### 12) `LoadProjectFromFile`
 
 Input: `fileContent`  
-Output: `projectId`, `typefaceId`, `schemaVersion`
-
-Puertos: `ProjectSerializer`, `TypefaceRepository`.
+Output: `projectId`, `typefaceId`, `schemaVersion`  
+Puertos: `ProjectSerializer`, `ProjectRepository`
 
 ## Errores de aplicacion cerrados
 
 1. `INVALID_INPUT`
-2. `PROJECT_NOT_FOUND`
-3. `TYPEFACE_NOT_FOUND`
-4. `GLYPH_NOT_FOUND`
-5. `FILE_READ_ERROR`
-6. `FILE_SAVE_ERROR`
-7. `IMPORT_FORMAT_NOT_SUPPORTED`
-8. `IMPORT_BLOCKED_BY_VALIDATION`
-9. `EXPORT_BLOCKED_BY_READINESS`
-10. `USE_CASE_EXECUTION_ERROR`
+2. `INVALID_TYPEFACE_METADATA`
+3. `PROJECT_NOT_FOUND`
+4. `TYPEFACE_NOT_FOUND`
+5. `GLYPH_NOT_FOUND`
+6. `FILE_READ_ERROR`
+7. `FILE_SAVE_ERROR`
+8. `IMPORT_FORMAT_NOT_SUPPORTED`
+9. `IMPORT_BLOCKED_BY_VALIDATION`
+10. `EXPORT_BLOCKED_BY_READINESS`
+11. `USE_CASE_EXECUTION_ERROR`

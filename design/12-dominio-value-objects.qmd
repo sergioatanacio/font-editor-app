@@ -1,11 +1,11 @@
 # Dominio: Value Objects
 
-## Convención común
+## Convencion comun
 
 1. Inmutables.
 2. Constructor privado + `create`.
-3. Método `equals(other): boolean`.
-4. Validación en creación.
+3. Metodo `equals(other): boolean`.
+4. Validacion en creacion.
 
 ## Identidad
 
@@ -26,7 +26,7 @@
 1. `UnicodeCodePoint`
 2. `CharacterSet` (opcional v1)
 
-## Métricas de fuente
+## Metricas de fuente
 
 1. `UnitsPerEm` (16..16384)
 2. `Ascender`
@@ -37,13 +37,13 @@
 7. `Baseline` (=0 en v1)
 8. `FontMetrics`
 
-## Métricas de glifo
+## Metricas de glifo
 
 1. `AdvanceWidth` (>=0)
 2. `LeftSideBearing`
 3. `GlyphMetrics`
 
-## Geometría vectorial
+## Geometria vectorial
 
 1. `Point`
 2. `PathCommand` (`M | L | Q | C | Z`)
@@ -51,16 +51,16 @@
 4. `GlyphOutline`
 5. `BoundingBox` (opcional v1)
 
-## Reglas geométricas v1
+## Reglas geometricas v1
 
 1. `Contour` inicia en `M`.
 2. `Contour` termina en `Z`.
 3. Coordenadas finitas (sin `NaN`, sin `Infinity`).
-4. `GlyphOutline` acepta múltiples contornos válidos.
-5. Self-intersection no se valida en v1.
+4. `GlyphOutline` acepta multiples contornos validos.
+5. Self-intersection no bloquea en v1.
 
-## Resultado de exportabilidad
+## Resultado de exportabilidad (canonico)
 
-1. `ExportReadinessReport` (`isReady`, `issues`)
-2. `ExportIssue` (`code`, `message`, `glyphId?`)
+1. `ExportReadinessReport` (`isReady`, `errors[]`, `warnings[]`)
+2. `ExportIssue` (`code`, `message`, `severity`, `glyphId?`, `context?`)
 3. `ExportIssueCode`

@@ -23,6 +23,7 @@ type ErrorEnvelope = {
 | `MISSING_REQUIRED_GLYPH` | domain | error | false | "Faltan glifos requeridos para exportar." |
 | `EMPTY_OPTIONAL_OUTLINE` | domain | warning | true | "Hay glifos opcionales vacios." |
 | `PROJECT_NOT_FOUND` | application | error | true | "No se encontro el proyecto." |
+| `INVALID_TYPEFACE_METADATA` | application | error | true | "Los metadatos de la fuente no son validos." |
 | `TYPEFACE_NOT_FOUND` | application | error | true | "No se encontro la fuente." |
 | `IMPORT_BLOCKED_BY_VALIDATION` | application | error | true | "La importacion fue bloqueada por validacion." |
 | `EXPORT_BLOCKED_BY_READINESS` | application | error | true | "La fuente no cumple criterios de exportacion." |

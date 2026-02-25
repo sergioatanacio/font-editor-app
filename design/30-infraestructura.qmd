@@ -28,16 +28,18 @@
 1. `SvgTemplateExporterAdapter`
 2. `SvgGlyphVectorImporterAdapter`
 3. `TtfExporterAdapter`
-4. `IndexedDbTypefaceRepositoryAdapter`
+4. `IndexedDbProjectRepositoryAdapter`
 5. `JsonProjectSerializerAdapter`
 6. `BrowserFileSystemGatewayAdapter`
 7. `WebCryptoIdGeneratorAdapter`
+8. `SvgImportWorkerAdapter`
 
 ## Contratos de robustez
 
 1. Validar tipo/tamanio antes de parseo.
 2. Limite de seguridad por archivo: 20 MB.
-3. Timeouts de parseo en tareas largas con cancelacion.
+3. Parseo en `Web Worker` + cancelacion con `AbortController`.
+4. Timeouts cerrados: import 15s, export 10s, save 10s.
 4. No evaluar scripts ni recursos externos embebidos.
 
 ## Estructura de carpetas cerrada
@@ -53,11 +55,13 @@ src/
         SvgGlyphVectorImporterAdapter.ts
         TtfExporterAdapter.ts
       repositories/
-        IndexedDbTypefaceRepositoryAdapter.ts
+        IndexedDbProjectRepositoryAdapter.ts
       serializers/
         JsonProjectSerializerAdapter.ts
       gateways/
         BrowserFileSystemGatewayAdapter.ts
       ids/
         WebCryptoIdGeneratorAdapter.ts
+      workers/
+        SvgImportWorkerAdapter.ts
 ```
