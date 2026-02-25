@@ -1,0 +1,49 @@
+﻿# Handoff de Implementacion (v1)
+
+## Objetivo
+
+Definir instrucciones operativas para que un agente implemente el sistema sin redisenar arquitectura.
+
+## Fuente canonica
+
+1. Los `.qmd` son la fuente de verdad.
+2. `main.qmd` compila el documento maestro.
+3. `main.md` es salida compilada de lectura.
+
+## Alcance obligatorio
+
+1. Respetar arquitectura hexagonal por capas.
+2. Respetar FSM cerradas de importacion y exportacion.
+3. Respetar contratos de puertos, DTOs y errores.
+4. Mantener importacion atomica via `Preview -> Commit`.
+
+## Orden de implementacion recomendado
+
+1. Contrato comun `UseCase.execute` + `Result`.
+2. Casos de uso criticos:
+   `CreateTypeface`, `PreviewTemplateImport`, `CommitTemplateImportPreview`, `ExportTypefaceToTtf`.
+3. FSM de importacion/exportacion con reducer puro y guards.
+4. Puertos y adaptadores de infraestructura.
+5. Mappers de conversion entre fronteras.
+6. UI minima de flujos principales.
+
+## Reglas cerradas que no se negocian
+
+1. TTL preview: `900s`, expiracion absoluta, sin renovacion por lectura.
+2. `ImportPreviewStore`: `save/load/delete/deleteExpired`.
+3. `FontBinaryExporter`: salida `{ bytes, warnings }`.
+4. `.notdef` por defecto: `round(unitsPerEm * 0.5)` (fallback defensivo).
+5. Drift `C->Q` maximo: `0.5` unidades por punto (fijo v1).
+6. `bounds`: calcular solo con coordenadas finitas y contornos cerrados.
+7. Eventos de dominio en v1: no-op.
+8. `jszip` fuera de alcance v1.
+
+## Criterio de finalizacion (Definition of Done)
+
+1. Compila sin errores.
+2. Pasa unit tests de dominio y aplicacion.
+3. Pasa tests FSM (incluye cancelacion en estados activos).
+4. Pasa integracion de import/export.
+5. Pasa golden TTF.
+6. Pasa migracion snapshot `1.0.0 -> 1.1.0`.
+7. No rompe invariantes de dominio.

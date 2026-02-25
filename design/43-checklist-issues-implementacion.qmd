@@ -1,0 +1,59 @@
+﻿# Checklist de Issues para Implementacion (v1)
+
+## Objetivo
+
+Traducir la especificacion a tareas ejecutables y verificables.
+
+## Epic A: Base de aplicacion
+
+1. Crear contrato `UseCase<I,O,E>` y `Result` comun.
+2. Estandarizar `AppError` y mapeo a `ErrorEnvelope`.
+3. Definir paquetes por capa segun estructura canonica.
+
+## Epic B: Dominio
+
+1. Implementar `Typeface` y `Glyph` con factories e invariantes.
+2. Implementar VOs principales (`GlyphName`, metricas, unicode, etc.).
+3. Implementar `ExportReadinessPolicy` con estrategias por `exportPreset`.
+
+## Epic C: Importacion (Preview -> Commit)
+
+1. Implementar `PreviewTemplateImport`.
+2. Implementar `CommitTemplateImportPreview`.
+3. Implementar `ImportPreviewStore` con TTL fijo `900s`.
+4. Implementar control de stale preview (`IMPORT_PREVIEW_STALE`).
+5. Implementar cancelacion en estados activos de FSM import.
+
+## Epic D: Exportacion TTF
+
+1. Implementar `ExportTypefaceToTtf`.
+2. Implementar `FontBinaryExporter` con salida `{ bytes, warnings }`.
+3. Aplicar regla `.notdef` por defecto defensiva.
+4. Implementar warning `CURVE_APPROXIMATION_DRIFT` con umbral `0.5`.
+
+## Epic E: Persistencia y archivos
+
+1. Implementar `ProjectRepository` (IndexedDB).
+2. Implementar `ProjectSerializer`.
+3. Implementar `FileSystemGateway`.
+4. Implementar migracion snapshot `1.0.0 -> 1.1.0`.
+
+## Epic F: UI minima
+
+1. `InicioProyecto` con `CharacterSetChecks` + `ExportPresetSelector`.
+2. `ImportacionSvg` + `PrevisualizacionImportacion`.
+3. `ValidacionExportacion` + `ExportacionTtf`.
+4. `PanelErrores` con mensaje amigable + detalle tecnico.
+
+## Criterios de aceptacion por issue
+
+1. Tests unitarios/integracion actualizados.
+2. Sin acceso directo UI -> infraestructura.
+3. Sin estados invalidos fuera de FSM.
+4. Sin errores no tipados en flujos criticos.
+
+## Cierre de release v1
+
+1. Golden `minimal-latin.ttf` estable.
+2. Fixtures de preview (`ok`, `expired`, `stale`) validados.
+3. Documentacion recompilada sin divergencias (`main.md`).

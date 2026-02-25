@@ -55,3 +55,7 @@ Este archivo compila toda la documentación funcional y técnica del proyecto.
 {{< include 40-estrategia-pruebas.qmd >}}
 
 {{< include 41-fixtures-golden.qmd >}}
+
+{{< include 42-handoff-implementacion.qmd >}}
+
+{{< include 43-checklist-issues-implementacion.qmd >}}
