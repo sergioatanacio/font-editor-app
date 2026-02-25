@@ -92,9 +92,10 @@ Nota: self-intersection no bloquea en v1, pero genera warning.
 ## Regla de BoundingBox v1
 
 1. `bounds` es opcional en `ImportedGlyphBatch`.
-2. Si el importador puede calcularlo de forma confiable, debe incluirlo.
-3. Si no se incluye, el dominio no bloquea ni recalcula en v1.
-4. `bounds` en v1 es informativo (UI/diagnostico), no invariante de dominio.
+2. Calcular `bounds` cuando se cumpla: coordenadas finitas y contornos cerrados.
+3. Si no se cumple la condicion de calculo, omitir `bounds` y registrar `NON_FINITE_COORDINATE` o `OPEN_CONTOUR` segun corresponda.
+4. Si no se incluye, el dominio no bloquea ni recalcula en v1.
+5. `bounds` en v1 es informativo (UI/diagnostico), no invariante de dominio.
 
 ## Codigos de issue de importacion
 

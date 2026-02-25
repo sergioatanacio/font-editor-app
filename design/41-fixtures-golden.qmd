@@ -18,6 +18,8 @@ test-assets/
   preview/
     preview-latam-ok.json
     preview-code-with-issues.json
+    preview-expired.json
+    preview-stale-project.json
 ```
 
 ## Fixtures SVG obligatorios
@@ -45,6 +47,8 @@ test-assets/
 1. `preview-latam-ok.json`: todos los glifos en `ok` o `warning` no bloqueante.
 2. `preview-code-with-issues.json`: mezcla de `ok`, `warning`, `error`, `empty`.
 3. Validar conteos de `summary` y filtros por estado.
+4. `preview-expired.json`: `expiresAt` vencido (TTL absoluto 900s).
+5. `preview-stale-project.json`: `baseProjectUpdatedAt` distinto al `updatedAt` actual.
 
 ## CI gates
 

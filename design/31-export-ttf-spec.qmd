@@ -18,8 +18,9 @@ Mapear `Typeface` de dominio a binario `TTF` de forma determinista.
 ## Reglas de glifos especiales
 
 1. Si `.notdef` falta, crear outline vacio con `advanceWidth` por defecto.
-2. `space` puede tener outline vacio.
-3. Glifo no `space` con outline vacio: bloqueado por readiness.
+2. `advanceWidth` por defecto de `.notdef`: `round(unitsPerEm * 0.5)`.
+3. `space` puede tener outline vacio.
+4. Glifo no `space` con outline vacio: bloqueado por readiness.
 
 ## Mapeo de metricas
 
@@ -53,9 +54,10 @@ Mapear `Typeface` de dominio a binario `TTF` de forma determinista.
 2. Metricas enteras.
 3. No usar normalizacion adicional en exportador.
 4. La cuantizacion final de coordenadas ocurre una sola vez en exportacion TTF.
-5. Si la aproximacion `C -> Q` supera tolerancia visual configurable, emitir warning `CURVE_APPROXIMATION_DRIFT`.
-6. Tolerancia recomendada v1 para drift maximo por punto: `<= 0.5` unidades tipograficas.
-7. En `unitsPerEm` bajos, mantener la misma regla de drift y priorizar consistencia de contorno cerrado.
+5. Si la aproximacion `C -> Q` supera tolerancia visual, emitir warning `CURVE_APPROXIMATION_DRIFT`.
+6. Tolerancia maxima v1 (fija): `0.5` unidades tipograficas por punto.
+7. La tolerancia no es configurable por UI en v1.
+8. En `unitsPerEm` bajos, mantener la misma regla de drift y priorizar consistencia de contorno cerrado.
 
 ## Tablas TTF minimas y defaults v1
 

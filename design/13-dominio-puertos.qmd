@@ -14,6 +14,7 @@ Aislar el dominio de librerias, UI y detalles tecnicos.
 6. `FileSystemGateway`
 7. `Clock`
 8. `IdGenerator`
+9. `ImportPreviewStore`
 
 ## Contratos minimos
 
@@ -35,7 +36,7 @@ Nota: en v1 se importa solo SVG.
 
 ### `FontBinaryExporter`
 
-1. `exportTtf(typeface: Typeface): Promise<Uint8Array>`
+1. `exportTtf(typeface: Typeface): Promise<{ bytes: Uint8Array; warnings: ExportIssue[] }>`
 
 ### `ProjectSerializer`
 
@@ -54,6 +55,13 @@ Nota: en v1 se importa solo SVG.
 ### `IdGenerator`
 
 1. `nextId(): string`
+
+### `ImportPreviewStore`
+
+1. `save(preview: ImportPreviewRecord): Promise<void>`
+2. `load(previewId: string): Promise<ImportPreviewRecord | null>`
+3. `delete(previewId: string): Promise<void>`
+4. `deleteExpired(nowIso: string): Promise<number>`
 
 ## Tipos de contrato cerrados (v1)
 
@@ -89,6 +97,15 @@ Nota: en v1 se importa solo SVG.
 3. `isBlocking: boolean`
 4. `preview: Array<{ glyphId: string; codePoint?: number; status: "ok" | "warning" | "error" | "empty"; issues: ImportIssue[] }>`
 
+### `ImportPreviewRecord`
+
+1. `previewId: string`
+2. `projectId: string`
+3. `batch: ImportedGlyphBatch`
+4. `createdAt: string` (ISO-8601)
+5. `expiresAt: string` (ISO-8601)
+6. `baseProjectUpdatedAt: string` (ISO-8601)
+
 ## Eventos de dominio (disenio v1)
 
 1. `GlyphAddedToTypeface`
@@ -97,6 +114,8 @@ Nota: en v1 se importa solo SVG.
 4. `TypefaceMetricsChanged`
 5. `TypefaceValidatedForExport`
 6. `TypefaceExportFailedValidation`
+
+Regla v1: eventos de dominio fuera de alcance de publicacion (no-op). Se mantienen solo como diseno futuro.
 
 ## Regla de arquitectura
 

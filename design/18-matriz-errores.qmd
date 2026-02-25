@@ -28,6 +28,7 @@ type ErrorEnvelope = {
 | `INVALID_CHARACTER_SELECTION` | application | error | true | "Debes activar al menos un conjunto de caracteres." |
 | `IMPORT_PREVIEW_NOT_FOUND` | application | error | true | "No se encontro la previsualizacion de importacion." |
 | `IMPORT_PREVIEW_EXPIRED` | application | error | true | "La previsualizacion expiro; vuelve a importar el archivo." |
+| `IMPORT_PREVIEW_STALE` | application | error | true | "El proyecto cambio desde la previsualizacion; vuelve a generar la importacion." |
 | `IMPORT_BLOCKED_BY_VALIDATION` | application | error | true | "La importacion fue bloqueada por validacion." |
 | `INVALID_CELL_REFERENCE` | infrastructure | error | true | "La celda de importacion tiene padding o altura invalidos." |
 | `EXPORT_BLOCKED_BY_READINESS` | application | error | true | "La fuente no cumple criterios de exportacion." |

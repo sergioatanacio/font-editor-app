@@ -28,6 +28,7 @@ Garantizar persistencia offline estable y migrable entre versiones.
 2. Orden estable de claves para diffs.
 3. No incluir campos derivados cacheables.
 4. Guardar solo estado necesario para reconstruccion.
+5. No serializar previews temporales de importacion (`ImportPreviewStore`).
 
 ## Reglas de deserializacion
 

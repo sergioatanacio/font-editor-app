@@ -38,7 +38,8 @@
 5. `PARSE_FAIL`: `issues[]`
 6. `VALIDATION_OK`: `previewId`, `summary`, `isBlocking=false`
 7. `VALIDATION_FAIL`: `previewId`, `summary`, `issues[]`, `isBlocking=true`
-8. `APPLY_FAIL`: `issues[]`
+8. `VALIDATION_OK` y `VALIDATION_FAIL` incluyen `expiresAt` (TTL fijo 900s desde `createdAt`).
+9. `APPLY_FAIL`: `issues[]`
 
 ## FSM 2: ExportTypefaceToTtf
 

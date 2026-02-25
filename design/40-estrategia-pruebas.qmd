@@ -29,6 +29,7 @@ Asegurar consistencia de dominio, estabilidad de flujos y preservacion de vector
 4. No mutacion directa de entidades.
 5. `PreviewTemplateImport` devuelve `glyphPreview[]` y `summary` consistentes.
 6. `CommitTemplateImportPreview` respeta TTL y bloqueos.
+7. TTL de preview fijo (`900s`) sin renovacion por lectura.
 
 ## FSM: pruebas de transiciones
 
@@ -52,6 +53,8 @@ Asegurar consistencia de dominio, estabilidad de flujos y preservacion de vector
 2. Metadata de fuente correcta.
 3. Conteo de glifos esperado.
 4. Golden tests: hash/tamanio esperado con tolerancia.
+5. Verificar `.notdef` autogenerado con `advanceWidth = round(unitsPerEm * 0.5)`.
+6. Verificar warning `CURVE_APPROXIMATION_DRIFT` cuando drift > `0.5`.
 
 ## Persistencia snapshot
 

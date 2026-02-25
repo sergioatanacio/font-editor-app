@@ -28,8 +28,10 @@
 4. Construir `glyphPreview[]` con estado por glifo (`ok|warning|error|empty`).
 5. Construir `summary` de importacion.
 6. Si `isBlocking=true`, devolver preview bloqueante sin persistir cambios.
-7. Persistir preview temporal con `previewId` y TTL local.
-8. Devolver preview para confirmacion en UI, incluyendo `issues[]` tipadas.
+7. Persistir preview temporal con `previewId` y TTL fijo de `900s`.
+8. Guardar `createdAt`, `expiresAt` y `baseProjectUpdatedAt`.
+9. La lectura de preview no renueva TTL (sin sliding expiration).
+10. Devolver preview para confirmacion en UI, incluyendo `issues[]` tipadas.
 
 ## `CommitTemplateImportPreview`
 
@@ -37,12 +39,13 @@
 2. Cargar preview temporal por `previewId`.
 3. Si preview no existe: `IMPORT_PREVIEW_NOT_FOUND`.
 4. Si preview expiro: `IMPORT_PREVIEW_EXPIRED`.
-5. Si preview es bloqueante: `IMPORT_BLOCKED_BY_VALIDATION`.
-6. Aplicar batch completo de outlines de forma atomica (todo o nada).
-7. Actualizar `updatedAt`.
-8. Guardar snapshot.
-9. Invalidar preview temporal.
-10. Devolver conteo e `issues[]`.
+5. Si `project.updatedAt` difiere de `baseProjectUpdatedAt`: `IMPORT_PREVIEW_STALE`.
+6. Si preview es bloqueante: `IMPORT_BLOCKED_BY_VALIDATION`.
+7. Aplicar batch completo de outlines de forma atomica (todo o nada).
+8. Actualizar `updatedAt`.
+9. Guardar snapshot.
+10. Invalidar preview temporal.
+11. Devolver conteo e `issues[]`.
 
 ## `ValidateTypefaceForExport`
 
