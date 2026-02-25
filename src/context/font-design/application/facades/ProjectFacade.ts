@@ -1,6 +1,7 @@
 import type { Clock, ProjectRepository, ProjectSerializer, FileSystemGateway } from "../../domain/ports";
 import type { AppError } from "../../shared/errors/AppError";
-import { CreateTypefaceUseCase, type CreateTypefaceInput } from "../use-cases";
+import { CreateTypefaceUseCase } from "../use-cases";
+import type { CreateTypefaceInput } from "../use-cases/CreateTypefaceUseCase";
 
 function appError(code: string, message: string): AppError {
   return {
