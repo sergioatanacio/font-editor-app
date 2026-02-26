@@ -6,6 +6,17 @@ import {
   ProjectFacade,
   ImportFacade,
   ExportFacade,
+  UpdateTypefaceMetadataUseCase,
+  UpdateTypefaceMetricsUseCase,
+  AssignUnicodeToGlyphUseCase,
+  ReplaceGlyphOutlineUseCase,
+  UpdateGlyphMetricsUseCase,
+  GenerateTemplateSvgUseCase,
+  SaveProjectToFileUseCase,
+  LoadProjectFromFileUseCase,
+  ValidateTypefaceForExportUseCase,
+  TypefaceFacade,
+  TemplateFacade,
 } from "./application";
 import {
   InMemoryImportPreviewStore,
@@ -25,6 +36,8 @@ import {
   TtfExporterAdapter,
   StubFontBinaryExporter,
   ImportPreviewStoreAdapter,
+  SvgTemplateExporterAdapter,
+  StubTemplateExporter,
 } from "./infrastructure";
 import {
   UiController,
@@ -46,6 +59,8 @@ export interface FontDesignApp {
     project: ProjectFacade;
     import: ImportFacade;
     export: ExportFacade;
+    typeface: TypefaceFacade;
+    template: TemplateFacade;
   };
 }
 
@@ -82,23 +97,52 @@ export function createFontDesignApp(): FontDesignApp {
     : svgImporterBase;
 
   const ttfExporter = isBrowser ? new TtfExporterAdapter() : new StubFontBinaryExporter();
+  const templateExporter = isBrowser ? new SvgTemplateExporterAdapter() : new StubTemplateExporter();
 
   const createTypeface = new CreateTypefaceUseCase(projectRepository, clock, idGenerator);
+  const updateTypefaceMetadata = new UpdateTypefaceMetadataUseCase(projectRepository, clock);
+  const updateTypefaceMetrics = new UpdateTypefaceMetricsUseCase(projectRepository, clock);
+
+  const assignUnicode = new AssignUnicodeToGlyphUseCase(projectRepository, clock);
+  const replaceGlyphOutline = new ReplaceGlyphOutlineUseCase(projectRepository, clock);
+  const updateGlyphMetrics = new UpdateGlyphMetricsUseCase(projectRepository, clock);
+
+  const generateTemplateSvg = new GenerateTemplateSvgUseCase(projectRepository, templateExporter, clock);
+
+  const saveProjectToFile = new SaveProjectToFileUseCase(projectRepository, serializer, fileSystemGateway);
+  const loadProjectFromFile = new LoadProjectFromFileUseCase(fileSystemGateway, serializer, projectRepository);
+
   const previewTemplateImport = new PreviewTemplateImportUseCase(projectRepository, svgImporter, previewStore, clock);
   const commitTemplateImport = new CommitTemplateImportPreviewUseCase(projectRepository, previewStore, clock);
+
+  const validateTypefaceForExport = new ValidateTypefaceForExportUseCase(projectRepository);
   const exportTypefaceToTtf = new ExportTypefaceToTtfUseCase(projectRepository, ttfExporter, fileSystemGateway);
 
-  const projectFacade = new ProjectFacade(createTypeface, projectRepository, serializer, fileSystemGateway, clock);
+  const projectFacade = new ProjectFacade(
+    createTypeface,
+    updateTypefaceMetadata,
+    updateTypefaceMetrics,
+    saveProjectToFile,
+    loadProjectFromFile,
+    projectRepository,
+    serializer,
+    fileSystemGateway,
+    clock,
+  );
+
+  const typefaceFacade = new TypefaceFacade(assignUnicode, replaceGlyphOutline, updateGlyphMetrics);
+  const templateFacade = new TemplateFacade(generateTemplateSvg, fileSystemGateway);
+
   const importFacade = new ImportFacade(previewTemplateImport, commitTemplateImport);
-  const exportFacade = new ExportFacade(exportTypefaceToTtf, projectRepository);
+  const exportFacade = new ExportFacade(exportTypefaceToTtf, validateTypefaceForExport);
 
   const ui = new UiController({
     inicioProyecto: new InicioProyectoScreen(projectFacade),
-    configuracionFuente: new ConfiguracionFuenteScreen(),
-    plantillaSvg: new PlantillaSvgScreen(),
+    configuracionFuente: new ConfiguracionFuenteScreen(projectFacade),
+    plantillaSvg: new PlantillaSvgScreen(templateFacade),
     importacionSvg: new ImportacionSvgScreen(importFacade),
     previsualizacionImportacion: new PrevisualizacionImportacionScreen(importFacade),
-    editorGlifos: new EditorGlifosScreen(),
+    editorGlifos: new EditorGlifosScreen(typefaceFacade),
     validacionExportacion: new ValidacionExportacionScreen(exportFacade),
     exportacionTtf: new ExportacionTtfScreen(exportFacade),
     guardarAbrirProyecto: new GuardarAbrirProyectoScreen(projectFacade),
@@ -111,6 +155,8 @@ export function createFontDesignApp(): FontDesignApp {
       project: projectFacade,
       import: importFacade,
       export: exportFacade,
+      typeface: typefaceFacade,
+      template: templateFacade,
     },
   };
 }
