@@ -164,6 +164,7 @@ function renderEditorGlifos(): string {
   return `
   <div class="panel">
     <h2>EditorGlifos</h2>
+    <small>Opcional: no necesitas editar aqui para importar y exportar.</small>
     <div class="grid">
       <div class="field"><label>glyphId</label><input id="editGlyphId" value="A" /></div>
       <div class="field"><label>Unicode code point</label><input id="editCodePoint" type="number" value="65" /></div>
