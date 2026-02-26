@@ -405,8 +405,15 @@ function distanceSquared(x1: number, y1: number, x2: number, y2: number): number
 export class SvgGlyphVectorImporterAdapter implements GlyphVectorImporter {
   async importFromSvg(input: string, mapping: unknown): Promise<ImportedGlyphBatch> {
     const globalIssues: ImportIssue[] = [];
+    console.info("[IMPORT_TRACE][ADAPTER] import:start", {
+      svgLength: input.length,
+      hasTemplateRootMarker: input.includes("ctf-template-root"),
+      hasSvgTag: input.includes("<svg"),
+      mappingType: typeof mapping,
+    });
 
     if (typeof DOMParser === "undefined") {
+      console.error("[IMPORT_TRACE][ADAPTER] fail:domparser-missing");
       return {
         items: [],
         globalIssues: [issue("MISSING_TEMPLATE_ROOT", "DOMParser no disponible en este runtime.", "error")],
@@ -418,6 +425,9 @@ export class SvgGlyphVectorImporterAdapter implements GlyphVectorImporter {
     const parser = new DOMParser();
     const doc = parser.parseFromString(input, "image/svg+xml");
     if (doc.querySelector("parsererror")) {
+      console.error("[IMPORT_TRACE][ADAPTER] fail:parsererror", {
+        preview: input.slice(0, 200),
+      });
       return {
         items: [],
         globalIssues: [issue("MISSING_TEMPLATE_ROOT", "SVG invalido o no parseable.", "error")],
@@ -428,6 +438,11 @@ export class SvgGlyphVectorImporterAdapter implements GlyphVectorImporter {
 
     const root = doc.querySelector("g#ctf-template-root");
     if (!root) {
+      console.error("[IMPORT_TRACE][ADAPTER] fail:missing-root", {
+        svgId: doc.querySelector("svg")?.getAttribute("id") ?? "",
+        gCount: doc.querySelectorAll("g").length,
+        rootCandidates: Array.from(doc.querySelectorAll("g[id]")).slice(0, 8).map((x) => x.getAttribute("id") ?? ""),
+      });
       return {
         items: [],
         globalIssues: [issue("MISSING_TEMPLATE_ROOT", "No existe ctf-template-root en la plantilla.", "error")],
@@ -439,6 +454,9 @@ export class SvgGlyphVectorImporterAdapter implements GlyphVectorImporter {
     const metadataResult = parseMetadata(doc);
     globalIssues.push(...metadataResult.issues);
     if (!metadataResult.metadata) {
+      console.error("[IMPORT_TRACE][ADAPTER] fail:metadata", {
+        issues: metadataResult.issues.map((x) => x.code),
+      });
       return {
         items: [],
         globalIssues,
@@ -620,6 +638,13 @@ export class SvgGlyphVectorImporterAdapter implements GlyphVectorImporter {
     }
 
     const isBlocking = [...globalIssues, ...items.flatMap((x) => x.issues)].some((x) => x.severity === "error");
+    console.info("[IMPORT_TRACE][ADAPTER] import:done", {
+      cells: cells.length,
+      items: items.length,
+      preview: preview.length,
+      globalIssueCodes: globalIssues.map((x) => x.code).slice(0, 10),
+      isBlocking,
+    });
 
     return {
       items,

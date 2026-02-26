@@ -56,6 +56,11 @@ export class PreviewTemplateImportUseCase
   async execute(
     input: PreviewTemplateImportInput,
   ): Promise<Result<PreviewTemplateImportOutput, AppError>> {
+    console.info("[IMPORT_TRACE][USE_CASE] execute:start", {
+      projectId: input.projectId,
+      svgLength: input.svgContent.length,
+      hasTemplateRootMarker: input.svgContent.includes("ctf-template-root"),
+    });
     const project = await this.projectRepository.load(input.projectId);
     if (!project) {
       return {
@@ -68,6 +73,9 @@ export class PreviewTemplateImportUseCase
     try {
       batch = await this.glyphVectorImporter.importFromSvg(input.svgContent, input.mapping);
     } catch (error) {
+      console.error("[IMPORT_TRACE][USE_CASE] importer:throw", {
+        cause: error instanceof Error ? error.message : "unknown",
+      });
       return {
         ok: false,
         error: asAppError("USE_CASE_EXECUTION_ERROR", "Fallo tecnico durante el parseo/importacion SVG.", {
@@ -91,6 +99,14 @@ export class PreviewTemplateImportUseCase
 
     const issues = [...batch.globalIssues, ...batch.preview.flatMap((x) => x.issues)];
     const previewId = `${input.projectId}:${Date.parse(nowIso)}`;
+    console.info("[IMPORT_TRACE][USE_CASE] execute:batch", {
+      previewId,
+      items: batch.items.length,
+      preview: batch.preview.length,
+      isBlocking: batch.isBlocking,
+      globalIssueCodes: batch.globalIssues.map((x) => x.code).slice(0, 10),
+      issueCodes: issues.map((x) => x.code).slice(0, 10),
+    });
 
     await this.importPreviewStore.save({
       previewId,

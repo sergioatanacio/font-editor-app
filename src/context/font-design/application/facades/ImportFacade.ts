@@ -35,6 +35,13 @@ export class ImportFacade {
   }
 
   async previewImport(input: { projectId: string; filename: string; svgContent: string; mapping: unknown }) {
+    console.info("[IMPORT_TRACE][FACADE] previewImport:start", {
+      state: this.state.name,
+      projectId: input.projectId,
+      filename: input.filename,
+      svgLength: input.svgContent.length,
+      hasTemplateRootMarker: input.svgContent.includes("ctf-template-root"),
+    });
     this.state = importFsmTransition(this.state, { type: "SELECT_FILE", filename: input.filename });
     this.state = importFsmTransition(this.state, { type: "FILE_LOADED", svgContent: input.svgContent });
     this.state = importFsmTransition(this.state, { type: "PARSE_OK" });
@@ -50,6 +57,11 @@ export class ImportFacade {
       this.state = importFsmTransition(this.state, {
         type: "PARSE_FAIL",
         issues: [result.error.code],
+      });
+      console.error("[IMPORT_TRACE][FACADE] previewImport:error", {
+        state: this.state.name,
+        code: result.error.code,
+        message: result.error.message,
       });
       return result;
     }
@@ -72,6 +84,14 @@ export class ImportFacade {
         };
 
     this.state = importFsmTransition(this.state, event);
+    console.info("[IMPORT_TRACE][FACADE] previewImport:done", {
+      state: this.state.name,
+      previewId: result.value.previewId,
+      total: result.value.summary.total,
+      blockingCount: result.value.summary.blockingCount,
+      isBlocking: result.value.isBlocking,
+      issueCodes: result.value.issues.map((x) => x.code).slice(0, 10),
+    });
     return result;
   }
 
