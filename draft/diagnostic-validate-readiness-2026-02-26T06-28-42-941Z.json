@@ -1,0 +1,828 @@
+{
+  "before": {
+    "projectId": "a8751f8f-440e-425a-bcad-41587abec036",
+    "route": "ValidacionExportacion",
+    "status": "",
+    "exportFsm": {
+      "name": "error",
+      "issues": [
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH"
+      ]
+    },
+    "validacionScreen": {
+      "status": "error",
+      "error": {
+        "code": "EXPORT_BLOCKED_BY_READINESS",
+        "message": "La validacion de exportacion contiene bloqueos.",
+        "recoverable": true
+      },
+      "data": {
+        "isReady": false,
+        "errors": [
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: .notdef.",
+            "glyphId": ".notdef"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: space.",
+            "glyphId": "space"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: A.",
+            "glyphId": "A"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: B.",
+            "glyphId": "B"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: C.",
+            "glyphId": "C"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: D.",
+            "glyphId": "D"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: E.",
+            "glyphId": "E"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: F.",
+            "glyphId": "F"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: G.",
+            "glyphId": "G"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: H.",
+            "glyphId": "H"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: I.",
+            "glyphId": "I"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: J.",
+            "glyphId": "J"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: K.",
+            "glyphId": "K"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: L.",
+            "glyphId": "L"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: M.",
+            "glyphId": "M"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: N.",
+            "glyphId": "N"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: O.",
+            "glyphId": "O"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: P.",
+            "glyphId": "P"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: Q.",
+            "glyphId": "Q"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: R.",
+            "glyphId": "R"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: S.",
+            "glyphId": "S"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: T.",
+            "glyphId": "T"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: U.",
+            "glyphId": "U"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: V.",
+            "glyphId": "V"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: W.",
+            "glyphId": "W"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: X.",
+            "glyphId": "X"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: Y.",
+            "glyphId": "Y"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: Z.",
+            "glyphId": "Z"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: a.",
+            "glyphId": "a"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: b.",
+            "glyphId": "b"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: c.",
+            "glyphId": "c"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: d.",
+            "glyphId": "d"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: e.",
+            "glyphId": "e"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: f.",
+            "glyphId": "f"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: g.",
+            "glyphId": "g"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: h.",
+            "glyphId": "h"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: i.",
+            "glyphId": "i"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: j.",
+            "glyphId": "j"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: k.",
+            "glyphId": "k"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: l.",
+            "glyphId": "l"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: m.",
+            "glyphId": "m"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: n.",
+            "glyphId": "n"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: o.",
+            "glyphId": "o"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: p.",
+            "glyphId": "p"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: q.",
+            "glyphId": "q"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: r.",
+            "glyphId": "r"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: s.",
+            "glyphId": "s"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: t.",
+            "glyphId": "t"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: u.",
+            "glyphId": "u"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: v.",
+            "glyphId": "v"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: w.",
+            "glyphId": "w"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: x.",
+            "glyphId": "x"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: y.",
+            "glyphId": "y"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: z.",
+            "glyphId": "z"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: 0.",
+            "glyphId": "0"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: 1.",
+            "glyphId": "1"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: 2.",
+            "glyphId": "2"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: 3.",
+            "glyphId": "3"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: 4.",
+            "glyphId": "4"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: 5.",
+            "glyphId": "5"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: 6.",
+            "glyphId": "6"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: 7.",
+            "glyphId": "7"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: 8.",
+            "glyphId": "8"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: 9.",
+            "glyphId": "9"
+          }
+        ],
+        "warnings": [
+          {
+            "code": "LOW_GLYPH_COUNT",
+            "message": "Cantidad de glifos muy baja para una fuente util."
+          }
+        ]
+      }
+    }
+  },
+  "after": {
+    "projectId": "a8751f8f-440e-425a-bcad-41587abec036",
+    "route": "ValidacionExportacion",
+    "status": "",
+    "exportFsm": {
+      "name": "error",
+      "issues": [
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH",
+        "MISSING_REQUIRED_GLYPH"
+      ]
+    },
+    "validacionScreen": {
+      "status": "error",
+      "error": {
+        "code": "EXPORT_BLOCKED_BY_READINESS",
+        "message": "La validacion de exportacion contiene bloqueos.",
+        "recoverable": true
+      },
+      "data": {
+        "isReady": false,
+        "errors": [
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: .notdef.",
+            "glyphId": ".notdef"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: space.",
+            "glyphId": "space"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: A.",
+            "glyphId": "A"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: B.",
+            "glyphId": "B"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: C.",
+            "glyphId": "C"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: D.",
+            "glyphId": "D"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: E.",
+            "glyphId": "E"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: F.",
+            "glyphId": "F"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: G.",
+            "glyphId": "G"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: H.",
+            "glyphId": "H"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: I.",
+            "glyphId": "I"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: J.",
+            "glyphId": "J"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: K.",
+            "glyphId": "K"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: L.",
+            "glyphId": "L"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: M.",
+            "glyphId": "M"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: N.",
+            "glyphId": "N"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: O.",
+            "glyphId": "O"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: P.",
+            "glyphId": "P"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: Q.",
+            "glyphId": "Q"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: R.",
+            "glyphId": "R"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: S.",
+            "glyphId": "S"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: T.",
+            "glyphId": "T"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: U.",
+            "glyphId": "U"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: V.",
+            "glyphId": "V"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: W.",
+            "glyphId": "W"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: X.",
+            "glyphId": "X"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: Y.",
+            "glyphId": "Y"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: Z.",
+            "glyphId": "Z"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: a.",
+            "glyphId": "a"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: b.",
+            "glyphId": "b"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: c.",
+            "glyphId": "c"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: d.",
+            "glyphId": "d"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: e.",
+            "glyphId": "e"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: f.",
+            "glyphId": "f"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: g.",
+            "glyphId": "g"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: h.",
+            "glyphId": "h"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: i.",
+            "glyphId": "i"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: j.",
+            "glyphId": "j"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: k.",
+            "glyphId": "k"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: l.",
+            "glyphId": "l"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: m.",
+            "glyphId": "m"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: n.",
+            "glyphId": "n"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: o.",
+            "glyphId": "o"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: p.",
+            "glyphId": "p"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: q.",
+            "glyphId": "q"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: r.",
+            "glyphId": "r"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: s.",
+            "glyphId": "s"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: t.",
+            "glyphId": "t"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: u.",
+            "glyphId": "u"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: v.",
+            "glyphId": "v"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: w.",
+            "glyphId": "w"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: x.",
+            "glyphId": "x"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: y.",
+            "glyphId": "y"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: z.",
+            "glyphId": "z"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: 0.",
+            "glyphId": "0"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: 1.",
+            "glyphId": "1"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: 2.",
+            "glyphId": "2"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: 3.",
+            "glyphId": "3"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: 4.",
+            "glyphId": "4"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: 5.",
+            "glyphId": "5"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: 6.",
+            "glyphId": "6"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: 7.",
+            "glyphId": "7"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: 8.",
+            "glyphId": "8"
+          },
+          {
+            "code": "MISSING_REQUIRED_GLYPH",
+            "message": "Falta glifo requerido: 9.",
+            "glyphId": "9"
+          }
+        ],
+        "warnings": [
+          {
+            "code": "LOW_GLYPH_COUNT",
+            "message": "Cantidad de glifos muy baja para una fuente util."
+          }
+        ]
+      }
+    }
+  }
+}

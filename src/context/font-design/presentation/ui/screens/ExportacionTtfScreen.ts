@@ -4,6 +4,11 @@ import { errorState, idleState, loadingState, successState, type ViewState } fro
 export interface ExportacionTtfData {
   filename: string;
   byteLength: number;
+  report?: {
+    isReady: boolean;
+    errors: Array<{ code: string; message: string; glyphId?: string }>;
+    warnings: Array<{ code: string; message: string; glyphId?: string }>;
+  };
 }
 
 export class ExportacionTtfScreen {
@@ -28,7 +33,7 @@ export class ExportacionTtfScreen {
         code: result.error.code,
         message: result.error.message,
         recoverable: result.error.recoverable,
-      });
+      }, "report" in result ? { filename, byteLength: 0, report: result.report } : undefined);
       return this.viewState;
     }
 

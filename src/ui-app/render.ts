@@ -178,20 +178,39 @@ function renderEditorGlifos(): string {
   </div>`;
 }
 
-function renderValidacionExportacion(): string {
+function renderValidacionExportacion(app: FontDesignApp): string {
+  const vm = app.ui.screens.validacionExportacion.getState();
+  const report = vm.data;
+  const errors = report?.errors ?? [];
+  const warnings = report?.warnings ?? [];
+  const issueLines = [...errors.map((x) => `ERROR ${x.glyphId ?? "-"} ${x.code}`), ...warnings.map((x) => `WARN ${x.glyphId ?? "-"} ${x.code}`)]
+    .slice(0, 20)
+    .map((line) => `<li>${htmlEscape(line)}</li>`)
+    .join("");
   return `
   <div class="panel">
     <h2>ValidacionExportacion</h2>
     <div class="actions"><button class="primary" id="validateExportBtn">Validar readiness</button></div>
+    ${report ? `<small>Readiness: ${report.isReady ? "OK" : "BLOCKED"} | errors=${errors.length} warnings=${warnings.length}</small>` : ""}
+    ${issueLines ? `<ul>${issueLines}</ul>` : ""}
   </div>`;
 }
 
-function renderExportacionTtf(): string {
+function renderExportacionTtf(app: FontDesignApp): string {
+  const vm = app.ui.screens.exportacionTtf.getState();
+  const report = vm.data?.report;
+  const lines = (report?.errors ?? []).map((x) => `ERROR ${x.glyphId ?? "-"} ${x.code}`)
+    .concat((report?.warnings ?? []).map((x) => `WARN ${x.glyphId ?? "-"} ${x.code}`))
+    .slice(0, 20)
+    .map((line) => `<li>${htmlEscape(line)}</li>`)
+    .join("");
   return `
   <div class="panel">
     <h2>ExportacionTtf</h2>
     <div class="field"><label>Filename</label><input id="exportFilename" value="mi-fuente.ttf" /></div>
     <div class="actions"><button class="primary" id="exportTtfBtn">Exportar TTF</button></div>
+    ${report ? `<small>Readiness previo: ${report.isReady ? "OK" : "BLOCKED"} | errors=${report.errors.length} warnings=${report.warnings.length}</small>` : ""}
+    ${lines ? `<ul>${lines}</ul>` : ""}
   </div>`;
 }
 
@@ -224,8 +243,8 @@ function renderMainPanel(app: FontDesignApp, state: AppState): string {
   if (state.route === "ImportacionSvg") return renderImportacionSvg(state);
   if (state.route === "PrevisualizacionImportacion") return renderPrevisualizacionImportacion(app, state);
   if (state.route === "EditorGlifos") return renderEditorGlifos();
-  if (state.route === "ValidacionExportacion") return renderValidacionExportacion();
-  if (state.route === "ExportacionTtf") return renderExportacionTtf();
+  if (state.route === "ValidacionExportacion") return renderValidacionExportacion(app);
+  if (state.route === "ExportacionTtf") return renderExportacionTtf(app);
   if (state.route === "GuardarAbrirProyecto") return renderGuardarAbrirProyecto();
   return renderPanelErrores(app);
 }

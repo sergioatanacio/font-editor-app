@@ -15,6 +15,12 @@ export interface ValidateTypefaceForExportOutput {
   warnings: Array<{ code: string; message: string; glyphId?: string }>;
 }
 
+function isSpaceGlyph(glyph: { name: { toString(): string }; kind: string; unicode?: { toNumber(): number } }): boolean {
+  const name = glyph.name.toString();
+  const cp = glyph.unicode?.toNumber();
+  return glyph.kind === "space" || name === "space" || name === "u0020" || cp === 0x20;
+}
+
 function asAppError(code: string, message: string): AppError {
   return { code, message, layer: "application", severity: "error", recoverable: true };
 }
@@ -39,10 +45,13 @@ export class ValidateTypefaceForExportUseCase
     const errors: Array<{ code: string; message: string; glyphId?: string }> = [];
     const warnings: Array<{ code: string; message: string; glyphId?: string }> = [];
 
-    const byName = new Map(Array.from(typeface.glyphs.values()).map((glyph) => [glyph.name.toString(), glyph]));
+    const glyphs = Array.from(typeface.glyphs.values());
+    const byName = new Map(glyphs.map((glyph) => [glyph.name.toString(), glyph]));
 
     for (const requiredName of requiredGlyphNamesForExportPreset(project.exportPreset)) {
-      const glyph = byName.get(requiredName);
+      const glyph = requiredName === "space"
+        ? (byName.get("space") ?? byName.get("u0020") ?? glyphs.find((x) => isSpaceGlyph(x)))
+        : byName.get(requiredName);
       if (!glyph) {
         errors.push({ code: "MISSING_REQUIRED_GLYPH", message: `Falta glifo requerido: ${requiredName}.`, glyphId: requiredName });
         continue;
@@ -65,6 +74,15 @@ export class ValidateTypefaceForExportUseCase
     if (typeface.glyphs.size < 5) {
       warnings.push({ code: "LOW_GLYPH_COUNT", message: "Cantidad de glifos muy baja para una fuente util." });
     }
+
+    console.info("[EXPORT_TRACE][READINESS] report", {
+      projectId: input.projectId,
+      isReady: errors.length === 0,
+      errorCount: errors.length,
+      warningCount: warnings.length,
+      errorCodes: errors.map((x) => x.code).slice(0, 20),
+      warningCodes: warnings.map((x) => x.code).slice(0, 20),
+    });
 
     return {
       ok: true,

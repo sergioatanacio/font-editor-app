@@ -4,6 +4,16 @@ import { htmlEscape } from "./utils";
 
 export function mountActions(ctx: UiContext): void {
   const { app, state, clearStatus, setStatus, ensureProjectId, render } = ctx;
+  const downloadDiagnostic = (label: string, payload: unknown): void => {
+    const json = JSON.stringify(payload, null, 2);
+    const blob = new Blob([json], { type: "application/json;charset=utf-8" });
+    const a = document.createElement("a");
+    const ts = new Date().toISOString().replace(/[:.]/g, "-");
+    a.href = URL.createObjectURL(blob);
+    a.download = `diagnostic-${label}-${ts}.json`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  };
 
   document.querySelectorAll<HTMLButtonElement>(".nav-btn").forEach((btn) => {
     btn.onclick = () => {
@@ -268,7 +278,29 @@ export function mountActions(ctx: UiContext): void {
   if (validateExportBtn) {
     validateExportBtn.onclick = async () => {
       const pid = ensureProjectId(); if (!pid) return;
+      const before = {
+        projectId: pid,
+        route: state.route,
+        status: state.status,
+        exportFsm: app.ui.screens.exportacionTtf.getFsmState(),
+        validacionScreen: app.ui.screens.validacionExportacion.getState(),
+      };
       const vm = await app.ui.screens.validacionExportacion.validate(pid);
+      const after = {
+        projectId: pid,
+        route: state.route,
+        status: state.status,
+        exportFsm: app.ui.screens.exportacionTtf.getFsmState(),
+        validacionScreen: vm,
+      };
+      console.info("[EXPORT_TRACE][UI] validate-readiness", {
+        projectId: pid,
+        vmStatus: vm.status,
+        errorCode: vm.error?.code,
+        errors: vm.data?.errors.map((x) => x.code).slice(0, 20) ?? [],
+        warnings: vm.data?.warnings.map((x) => x.code).slice(0, 20) ?? [],
+      });
+      downloadDiagnostic("validate-readiness", { before, after });
       if (vm.status === "success") setStatus("success", "Readiness valido.");
       else if (vm.error) setStatus("error", `${vm.error.code}: ${vm.error.message}`);
       render();
@@ -279,7 +311,33 @@ export function mountActions(ctx: UiContext): void {
   if (exportTtfBtn) {
     exportTtfBtn.onclick = async () => {
       const pid = ensureProjectId(); if (!pid) return;
-      const vm = await app.ui.screens.exportacionTtf.export(pid, (document.getElementById("exportFilename") as HTMLInputElement).value);
+      const filename = (document.getElementById("exportFilename") as HTMLInputElement).value;
+      const before = {
+        projectId: pid,
+        filename,
+        route: state.route,
+        status: state.status,
+        exportFsm: app.ui.screens.exportacionTtf.getFsmState(),
+        validacionScreen: app.ui.screens.validacionExportacion.getState(),
+      };
+      const vm = await app.ui.screens.exportacionTtf.export(pid, filename);
+      const after = {
+        projectId: pid,
+        filename,
+        route: state.route,
+        status: state.status,
+        exportFsm: app.ui.screens.exportacionTtf.getFsmState(),
+        exportScreen: vm,
+      };
+      console.info("[EXPORT_TRACE][UI] export-ttf", {
+        projectId: pid,
+        filename,
+        vmStatus: vm.status,
+        errorCode: vm.error?.code,
+        reportErrors: vm.data?.report?.errors.map((x) => x.code).slice(0, 20) ?? [],
+        reportWarnings: vm.data?.report?.warnings.map((x) => x.code).slice(0, 20) ?? [],
+      });
+      downloadDiagnostic("export-ttf", { before, after });
       if (vm.status === "success") setStatus("success", `TTF exportado (${vm.data?.byteLength} bytes).`);
       else if (vm.error) setStatus("error", `${vm.error.code}: ${vm.error.message}`);
       render();
