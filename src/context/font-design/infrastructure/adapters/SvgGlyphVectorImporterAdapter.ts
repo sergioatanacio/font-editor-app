@@ -475,7 +475,7 @@ export class SvgGlyphVectorImporterAdapter implements GlyphVectorImporter {
     });
 
     if (typeof DOMParser === "undefined") {
-      console.warn("[IMPORT_TRACE][ADAPTER] fail:domparser-missing");
+      console.info("[IMPORT_TRACE][ADAPTER] domparser-missing-runtime");
       return {
         items: [],
         globalIssues: [issue("MISSING_TEMPLATE_ROOT", "DOMParser no disponible en este runtime.", "error")],

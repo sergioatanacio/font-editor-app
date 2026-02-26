@@ -127,13 +127,14 @@ function renderImportacionSvg(state: AppState): string {
 function renderPrevisualizacionImportacion(app: FontDesignApp, state: AppState): string {
   const vm = app.ui.screens.previsualizacionImportacion.getState().data;
   const items = vm?.glyphPreview ?? [];
+  const importedItems = items.filter((x) => (x.outline?.contours.length ?? 0) > 0);
   const hasPreview = !!vm?.previewId;
   const canCommit = hasPreview && !vm?.isBlocking && items.length > 0;
   const issueCodes = (vm?.issues ?? []).map((x) => x.code);
   const issueSummary = issueCodes.length > 0
     ? `<small>Issues: ${htmlEscape(issueCodes.slice(0, 8).join(", "))}${issueCodes.length > 8 ? "..." : ""}</small>`
     : "";
-  const cards = items
+  const cards = importedItems
     .map((x) => `<div class="card" data-glyph-id="${htmlEscape(x.glyphId)}">${renderGlyphThumb({ outline: x.outline, bounds: x.bounds, glyphId: x.glyphId })}<strong>${htmlEscape(x.glyphId)}</strong><br/><span class="badge ${x.status}">${x.status}</span><small>issues: ${x.issues.length}</small></div>`)
     .join("");
 
@@ -151,9 +152,9 @@ function renderPrevisualizacionImportacion(app: FontDesignApp, state: AppState):
       <button class="secondary" id="applyFilterBtn">Filtrar</button>
       <button class="primary" id="commitImportBtn" ${canCommit ? "" : "disabled"}>Confirmar aplicacion</button>
     </div>
-    ${vm ? `<small>Preview: total=${vm.summary.total}, ok=${vm.summary.ok}, warning=${vm.summary.warning}, error=${vm.summary.error}, empty=${vm.summary.empty}, blocking=${vm.summary.blockingCount}</small><br/>${issueSummary}` : ""}
+    ${vm ? `<small>Preview: total=${vm.summary.total}, importados=${importedItems.length}, ok=${vm.summary.ok}, warning=${vm.summary.warning}, error=${vm.summary.error}, empty=${vm.summary.empty}, blocking=${vm.summary.blockingCount}</small><br/>${issueSummary}` : ""}
     <div class="preview-layout">
-      <div class="preview-grid">${cards || "<small>Sin preview cargado.</small>"}</div>
+      <div class="preview-grid">${cards || "<small>No hay glifos con contorno importado en este preview.</small>"}</div>
       <div id="glyphDetail">Selecciona un glifo para ver detalle.</div>
     </div>
   </div>`;

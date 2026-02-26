@@ -20,6 +20,13 @@ export interface CommitTemplateImportPreviewOutput {
   issues: readonly ImportIssue[];
 }
 
+function inferGlyphKind(glyphId: string): "base" | "space" {
+  if (glyphId === "space" || glyphId.toLowerCase() === "u0020") {
+    return "space";
+  }
+  return "base";
+}
+
 function asAppError(code: string, message: string, context?: Record<string, unknown>): AppError {
   return {
     code,
@@ -113,7 +120,38 @@ export class CommitTemplateImportPreviewUseCase
             return { ok: false, error: fromDomainError(clearResult.error) };
           }
           nextTypeface = clearResult.value;
+          continue;
         }
+
+        const name = GlyphName.create(item.glyphId);
+        if (!name.ok) {
+          return { ok: false, error: fromDomainError(name.error) };
+        }
+
+        const metrics = GlyphMetrics.create({
+          advanceWidth: Math.round(nextTypeface.metrics.unitsPerEm * 0.6),
+          leftSideBearing: 0,
+        });
+        if (!metrics.ok) {
+          return { ok: false, error: fromDomainError(metrics.error) };
+        }
+
+        const glyph = Glyph.create({
+          id: glyphId.value,
+          name: name.value,
+          kind: inferGlyphKind(item.glyphId),
+          metrics: metrics.value,
+          outline: GlyphOutline.empty(),
+        });
+        if (!glyph.ok) {
+          return { ok: false, error: fromDomainError(glyph.error) };
+        }
+
+        const addResult = nextTypeface.addGlyph(glyph.value);
+        if (!addResult.ok) {
+          return { ok: false, error: fromDomainError(addResult.error) };
+        }
+        nextTypeface = addResult.value;
         continue;
       }
 
@@ -149,7 +187,7 @@ export class CommitTemplateImportPreviewUseCase
       const glyph = Glyph.create({
         id: glyphId.value,
         name: name.value,
-        kind: "base",
+        kind: inferGlyphKind(item.glyphId),
         metrics: metrics.value,
         outline: outline.value,
       });

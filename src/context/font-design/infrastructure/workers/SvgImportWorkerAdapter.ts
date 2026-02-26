@@ -39,7 +39,7 @@ export class SvgImportWorkerAdapter implements GlyphVectorImporter {
 
         const workerResult = event.data.result as ImportedGlyphBatch | undefined;
         if (isDomParserUnavailable(workerResult)) {
-          console.warn("[IMPORT_TRACE][WORKER_ADAPTER] domparser-missing-in-worker:fallback-main-thread");
+          console.info("[IMPORT_TRACE][WORKER_ADAPTER] domparser-missing-in-worker:fallback-main-thread");
           resolve(await this.fallbackImporter.importFromSvg(input, mapping));
           return;
         }

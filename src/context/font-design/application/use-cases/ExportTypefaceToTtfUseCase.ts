@@ -15,6 +15,24 @@ export interface ExportTypefaceToTtfOutput {
   warnings: readonly ExportIssue[];
 }
 
+function signature(bytes: Uint8Array): string {
+  if (bytes.byteLength < 4) {
+    return "";
+  }
+  return String.fromCharCode(bytes[0], bytes[1], bytes[2], bytes[3]);
+}
+
+function replaceExt(filename: string, ext: ".otf" | ".ttf"): string {
+  const trimmed = filename.trim();
+  if (!trimmed) {
+    return `font${ext}`;
+  }
+  if (/\.[^./\\]+$/.test(trimmed)) {
+    return trimmed.replace(/\.[^./\\]+$/, ext);
+  }
+  return `${trimmed}${ext}`;
+}
+
 function asAppError(code: string, message: string, context?: Record<string, unknown>): AppError {
   return {
     code,
@@ -69,14 +87,27 @@ export class ExportTypefaceToTtfUseCase
       };
     }
 
-    await this.fileSystemGateway.saveFile(input.filename, exported.bytes);
+    const sig = signature(exported.bytes);
+    let outputFilename = input.filename;
+    const outputWarnings: ExportIssue[] = [...exported.warnings];
+
+    if (sig === "OTTO" && input.filename.toLowerCase().endsWith(".ttf")) {
+      outputFilename = replaceExt(input.filename, ".otf");
+      outputWarnings.push({
+        code: "OUTPUT_FORMAT_CFF_OTF",
+        message: "El binario generado es OpenType/CFF (OTF). Se ajusto extension .otf para compatibilidad.",
+        severity: "warning",
+      });
+    }
+
+    await this.fileSystemGateway.saveFile(outputFilename, exported.bytes);
 
     return {
       ok: true,
       value: {
-        filename: input.filename,
+        filename: outputFilename,
         byteLength: exported.bytes.byteLength,
-        warnings: exported.warnings,
+        warnings: outputWarnings,
       },
     };
   }

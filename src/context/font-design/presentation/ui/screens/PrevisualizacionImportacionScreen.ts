@@ -58,9 +58,9 @@ export class PrevisualizacionImportacionScreen {
     return this.viewState;
   }
 
-  async confirm(projectId: string, previewId: string) {
+  async confirm(projectId: string) {
     const currentPreviewId = this.viewState.data?.previewId?.trim() ?? "";
-    if (!currentPreviewId || !previewId.trim()) {
+    if (!currentPreviewId) {
       this.viewState = errorState({
         code: "NO_PREVIEW_LOADED",
         message: "Primero ejecuta 'Previsualizar importacion' desde ImportacionSvg.",
@@ -70,7 +70,7 @@ export class PrevisualizacionImportacionScreen {
     }
 
     this.viewState = loadingState(this.viewState.data);
-    const result = await this.importFacade.commitImport({ projectId, previewId });
+    const result = await this.importFacade.commitImport({ projectId, previewId: currentPreviewId });
 
     if (!result.ok) {
       this.viewState = errorState({
@@ -82,7 +82,7 @@ export class PrevisualizacionImportacionScreen {
     }
 
     this.viewState = successState(this.viewState.data ?? {
-      previewId,
+      previewId: currentPreviewId,
       glyphPreview: [],
       summary: { total: 0, ok: 0, warning: 0, error: 0, empty: 0, blockingCount: 0 },
       issues: [],

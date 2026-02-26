@@ -105,38 +105,54 @@ export class ImportFacade {
     }
 
     if (this.state.name !== "previewReady") {
-      return {
-        ok: false as const,
-        error: appError("PREVIEW_NOT_READY", "No hay un preview listo para aplicar."),
-      };
+      console.warn("[IMPORT_TRACE][FACADE] commitImport:fsm-desync", {
+        state: this.state.name,
+        incomingPreviewId,
+      });
+    } else if ((this.state.previewId ?? "").trim() !== incomingPreviewId) {
+      console.warn("[IMPORT_TRACE][FACADE] commitImport:preview-id-mismatch", {
+        statePreviewId: this.state.previewId,
+        incomingPreviewId,
+      });
     }
 
-    if ((this.state.previewId ?? "").trim() !== incomingPreviewId) {
-      return {
-        ok: false as const,
-        error: appError("PREVIEW_ID_MISMATCH", "El preview seleccionado no coincide con el estado actual."),
-      };
+    if (this.state.name === "previewReady") {
+      this.state = importFsmTransition(this.state, { type: "APPLY_REQUESTED" });
+      if (this.state.name === "error") {
+        return {
+          ok: false as const,
+          error: appError("IMPORT_BLOCKED_BY_VALIDATION", "No se puede aplicar un preview bloqueante."),
+        };
+      }
     }
 
-    this.state = importFsmTransition(this.state, { type: "APPLY_REQUESTED" });
-
-    if (this.state.name === "error") {
-      return {
-        ok: false as const,
-        error: appError("IMPORT_BLOCKED_BY_VALIDATION", "No se puede aplicar un preview bloqueante."),
-      };
-    }
-
+    console.info("[IMPORT_TRACE][FACADE] commitImport:start", {
+      state: this.state.name,
+      projectId: input.projectId,
+      previewId: incomingPreviewId,
+    });
     const result = await this.commitUseCase.execute(input);
     if (!result.ok) {
-      this.state = importFsmTransition(this.state, {
-        type: "APPLY_FAIL",
-        issues: [result.error.code],
+      if (this.state.name === "applying") {
+        this.state = importFsmTransition(this.state, {
+          type: "APPLY_FAIL",
+          issues: [result.error.code],
+        });
+      }
+      console.error("[IMPORT_TRACE][FACADE] commitImport:error", {
+        code: result.error.code,
+        message: result.error.message,
       });
       return result;
     }
 
-    this.state = importFsmTransition(this.state, { type: "APPLY_OK" });
+    if (this.state.name === "applying") {
+      this.state = importFsmTransition(this.state, { type: "APPLY_OK" });
+    }
+    console.info("[IMPORT_TRACE][FACADE] commitImport:done", {
+      state: this.state.name,
+      importedCount: result.value.importedCount,
+    });
     return result;
   }
 }

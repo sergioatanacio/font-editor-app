@@ -47,13 +47,20 @@ export class ValidateTypefaceForExportUseCase
 
     const glyphs = Array.from(typeface.glyphs.values());
     const byName = new Map(glyphs.map((glyph) => [glyph.name.toString(), glyph]));
+    const outlinedNonNotdef = glyphs.filter((glyph) =>
+      glyph.name.toString() !== ".notdef" && glyph.outline.hasContours(),
+    );
 
     for (const requiredName of requiredGlyphNamesForExportPreset(project.exportPreset)) {
       const glyph = requiredName === "space"
         ? (byName.get("space") ?? byName.get("u0020") ?? glyphs.find((x) => isSpaceGlyph(x)))
         : byName.get(requiredName);
       if (!glyph) {
-        errors.push({ code: "MISSING_REQUIRED_GLYPH", message: `Falta glifo requerido: ${requiredName}.`, glyphId: requiredName });
+        warnings.push({
+          code: "MISSING_PRESET_GLYPH",
+          message: `Falta glifo del preset: ${requiredName}. Se exportara como glifo vacio.`,
+          glyphId: requiredName,
+        });
         continue;
       }
 
@@ -62,16 +69,14 @@ export class ValidateTypefaceForExportUseCase
       }
     }
 
-    if (project.exportPreset === "freeform") {
-      const nonNotdefOutlined = Array.from(typeface.glyphs.values()).filter((glyph) =>
-        glyph.name.toString() !== ".notdef" && glyph.outline.hasContours(),
-      );
-      if (nonNotdefOutlined.length === 0) {
-        warnings.push({ code: "MISSING_REQUIRED_GLYPH", message: "freeform sin glifos adicionales con contorno." });
-      }
+    if (outlinedNonNotdef.length === 0) {
+      errors.push({
+        code: "NO_OUTLINED_GLYPHS",
+        message: "No hay glifos con contorno para exportar.",
+      });
     }
 
-    if (typeface.glyphs.size < 5) {
+    if (outlinedNonNotdef.length < 5) {
       warnings.push({ code: "LOW_GLYPH_COUNT", message: "Cantidad de glifos muy baja para una fuente util." });
     }
 

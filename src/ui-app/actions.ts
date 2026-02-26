@@ -136,7 +136,10 @@ export function mountActions(ctx: UiContext): void {
         state.previewId = vm.data.previewId;
         app.ui.screens.previsualizacionImportacion.bindPreview(vm.data);
         state.route = "PrevisualizacionImportacion";
-        setStatus(vm.data.isBlocking ? "warning" : "success", vm.data.isBlocking ? "Preview con bloqueos." : "Preview listo para aplicar.");
+        setStatus(
+          vm.data.isBlocking ? "warning" : "success",
+          vm.data.isBlocking ? "Preview con bloqueos." : "Preview generado. Falta confirmar aplicacion.",
+        );
       } else if (vm.error) {
         setStatus("error", `${vm.error.code}: ${vm.error.message}`);
       }
@@ -208,13 +211,26 @@ export function mountActions(ctx: UiContext): void {
   if (commitImportBtn) {
     commitImportBtn.onclick = async () => {
       const pid = ensureProjectId(); if (!pid) return;
-      if (!state.previewId.trim()) {
+      const activePreviewId = app.ui.screens.previsualizacionImportacion.getState().data?.previewId?.trim() ?? "";
+      console.info("[IMPORT_TRACE][UI] commit-click", {
+        projectId: pid,
+        statePreviewId: state.previewId,
+        activePreviewId,
+      });
+      if (!activePreviewId) {
         setStatus("warning", "Primero ejecuta 'Previsualizar importacion' desde ImportacionSvg.");
         render();
         return;
       }
-      const vm = await app.ui.screens.previsualizacionImportacion.confirm(pid, state.previewId);
-      if (vm.status === "success") setStatus("success", "Importacion aplicada.");
+      const vm = await app.ui.screens.previsualizacionImportacion.confirm(pid);
+      console.info("[IMPORT_TRACE][UI] commit-result", {
+        status: vm.status,
+        errorCode: vm.error?.code,
+      });
+      if (vm.status === "success") {
+        state.previewId = "";
+        setStatus("success", "Importacion aplicada.");
+      }
       else if (vm.error) setStatus("error", `${vm.error.code}: ${vm.error.message}`);
       render();
     };
@@ -338,7 +354,10 @@ export function mountActions(ctx: UiContext): void {
         reportWarnings: vm.data?.report?.warnings.map((x) => x.code).slice(0, 20) ?? [],
       });
       downloadDiagnostic("export-ttf", { before, after });
-      if (vm.status === "success") setStatus("success", `TTF exportado (${vm.data?.byteLength} bytes).`);
+      if (vm.status === "success") {
+        const outName = vm.data?.filename ?? filename;
+        setStatus("success", `Fuente exportada: ${outName} (${vm.data?.byteLength} bytes).`);
+      }
       else if (vm.error) setStatus("error", `${vm.error.code}: ${vm.error.message}`);
       render();
     };
