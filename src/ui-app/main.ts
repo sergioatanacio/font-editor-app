@@ -119,9 +119,11 @@ function renderImportacionSvg(): string {
   <div class="panel">
     <h2>ImportacionSvg</h2>
     <div class="field"><label>Filename</label><input id="importFilename" value="template-editado.svg" /></div>
+    <input id="importSvgFile" type="file" accept=".svg,image/svg+xml" style="display:none" />
     <div class="field"><label>SVG content</label><textarea id="importSvgContent"><svg xmlns="http://www.w3.org/2000/svg"></svg></textarea></div>
     <div class="field"><label>Glyph mapping default glyphId</label><input id="mappingGlyphId" value="A" /></div>
     <div class="actions">
+      <button class="secondary" id="pickSvgFileBtn">Seleccionar archivo SVG</button>
       <button class="primary" id="previewImportBtn">Previsualizar importacion</button>
       <button class="secondary" id="cancelImportBtn">Cancelar</button>
     </div>
@@ -324,6 +326,35 @@ function mountActions(): void {
       } else if (vm.error) {
         setStatus("error", `${vm.error.code}: ${vm.error.message}`);
       }
+      render();
+    };
+  }
+
+  const pickSvgFileBtn = document.getElementById("pickSvgFileBtn") as HTMLButtonElement | null;
+  const importSvgFileInput = document.getElementById("importSvgFile") as HTMLInputElement | null;
+  if (pickSvgFileBtn && importSvgFileInput) {
+    pickSvgFileBtn.onclick = () => {
+      importSvgFileInput.click();
+    };
+
+    importSvgFileInput.onchange = async () => {
+      const file = importSvgFileInput.files?.[0];
+      if (!file) {
+        return;
+      }
+
+      const content = await file.text();
+      const filenameInput = document.getElementById("importFilename") as HTMLInputElement | null;
+      const svgContentInput = document.getElementById("importSvgContent") as HTMLTextAreaElement | null;
+
+      if (filenameInput) {
+        filenameInput.value = file.name;
+      }
+      if (svgContentInput) {
+        svgContentInput.value = content;
+      }
+
+      setStatus("success", `Archivo cargado: ${file.name}`);
       render();
     };
   }
