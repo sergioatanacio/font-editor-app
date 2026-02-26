@@ -76,6 +76,28 @@ export class ImportFacade {
   }
 
   async commitImport(input: { projectId: string; previewId: string }) {
+    const incomingPreviewId = input.previewId?.trim() ?? "";
+    if (!incomingPreviewId) {
+      return {
+        ok: false as const,
+        error: appError("NO_PREVIEW_LOADED", "Primero ejecuta 'Previsualizar importacion' desde ImportacionSvg."),
+      };
+    }
+
+    if (this.state.name !== "previewReady") {
+      return {
+        ok: false as const,
+        error: appError("PREVIEW_NOT_READY", "No hay un preview listo para aplicar."),
+      };
+    }
+
+    if ((this.state.previewId ?? "").trim() !== incomingPreviewId) {
+      return {
+        ok: false as const,
+        error: appError("PREVIEW_ID_MISMATCH", "El preview seleccionado no coincide con el estado actual."),
+      };
+    }
+
     this.state = importFsmTransition(this.state, { type: "APPLY_REQUESTED" });
 
     if (this.state.name === "error") {

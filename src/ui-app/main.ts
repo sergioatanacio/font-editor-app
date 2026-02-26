@@ -18,6 +18,8 @@ const state = {
   status: "" as string,
   statusKind: "success" as StatusKind,
   previewSelection: "all" as "all" | "ok" | "warning" | "error" | "empty",
+  importFilename: "template-editado.svg",
+  importSvgContent: '<svg xmlns="http://www.w3.org/2000/svg"></svg>',
 };
 
 const routes: UiRoute[] = [
@@ -118,9 +120,9 @@ function renderImportacionSvg(): string {
   return `
   <div class="panel">
     <h2>ImportacionSvg</h2>
-    <div class="field"><label>Filename</label><input id="importFilename" value="template-editado.svg" /></div>
+    <div class="field"><label>Filename</label><input id="importFilename" value="${htmlEscape(state.importFilename)}" /></div>
     <input id="importSvgFile" type="file" accept=".svg,image/svg+xml" style="display:none" />
-    <div class="field"><label>SVG content</label><textarea id="importSvgContent"><svg xmlns="http://www.w3.org/2000/svg"></svg></textarea></div>
+    <div class="field"><label>SVG content</label><textarea id="importSvgContent">${htmlEscape(state.importSvgContent)}</textarea></div>
     <div class="field"><label>Glyph mapping default glyphId</label><input id="mappingGlyphId" value="A" /></div>
     <div class="actions">
       <button class="secondary" id="pickSvgFileBtn">Seleccionar archivo SVG</button>
@@ -312,10 +314,14 @@ function mountActions(): void {
   if (previewImportBtn) {
     previewImportBtn.onclick = async () => {
       const pid = ensureProjectId(); if (!pid) return;
+      const filename = (document.getElementById("importFilename") as HTMLInputElement).value;
+      const svgContent = (document.getElementById("importSvgContent") as HTMLTextAreaElement).value;
+      state.importFilename = filename;
+      state.importSvgContent = svgContent;
       const vm = await app.ui.screens.importacionSvg.preview({
         projectId: pid,
-        filename: (document.getElementById("importFilename") as HTMLInputElement).value,
-        svgContent: (document.getElementById("importSvgContent") as HTMLTextAreaElement).value,
+        filename,
+        svgContent,
         mapping: { glyphId: (document.getElementById("mappingGlyphId") as HTMLInputElement).value },
       });
       if (vm.status === "success" && vm.data) {
@@ -353,6 +359,8 @@ function mountActions(): void {
       if (svgContentInput) {
         svgContentInput.value = content;
       }
+      state.importFilename = file.name;
+      state.importSvgContent = content;
 
       setStatus("success", `Archivo cargado: ${file.name}`);
       render();
@@ -392,6 +400,11 @@ function mountActions(): void {
   if (commitImportBtn) {
     commitImportBtn.onclick = async () => {
       const pid = ensureProjectId(); if (!pid) return;
+      if (!state.previewId.trim()) {
+        setStatus("warning", "Primero ejecuta 'Previsualizar importacion' desde ImportacionSvg.");
+        render();
+        return;
+      }
       const vm = await app.ui.screens.previsualizacionImportacion.confirm(pid, state.previewId);
       if (vm.status === "success") setStatus("success", "Importacion aplicada.");
       else if (vm.error) setStatus("error", `${vm.error.code}: ${vm.error.message}`);

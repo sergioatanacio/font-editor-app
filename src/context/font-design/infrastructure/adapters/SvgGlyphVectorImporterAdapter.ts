@@ -338,6 +338,70 @@ function parseMapping(mapping: unknown): TemplateMappingLike {
   };
 }
 
+function normalizePathCommands(pathElement: Element, d: string): any[] {
+  const transform = elementTransformChain(pathElement);
+  return new SVGPathData(d)
+    .transform(SVGPathDataTransformer.TO_ABS())
+    .transform(SVGPathDataTransformer.NORMALIZE_HVZ())
+    .transform(SVGPathDataTransformer.NORMALIZE_ST())
+    .transform(SVGPathDataTransformer.A_TO_C())
+    .transform(SVGPathDataTransformer.MATRIX(transform.a, transform.b, transform.c, transform.d, transform.e, transform.f))
+    .commands;
+}
+
+function computeSourceBounds(commands: readonly any[]): { xMin: number; yMin: number; xMax: number; yMax: number } | undefined {
+  let xMin = Number.POSITIVE_INFINITY;
+  let yMin = Number.POSITIVE_INFINITY;
+  let xMax = Number.NEGATIVE_INFINITY;
+  let yMax = Number.NEGATIVE_INFINITY;
+
+  const pushPoint = (x: number, y: number): void => {
+    if (!Number.isFinite(x) || !Number.isFinite(y)) {
+      return;
+    }
+    xMin = Math.min(xMin, x);
+    yMin = Math.min(yMin, y);
+    xMax = Math.max(xMax, x);
+    yMax = Math.max(yMax, y);
+  };
+
+  for (const cmd of commands) {
+    if (cmd.type === SVGPathData.MOVE_TO || cmd.type === SVGPathData.LINE_TO) {
+      pushPoint(cmd.x, cmd.y);
+    } else if (cmd.type === SVGPathData.QUAD_TO) {
+      pushPoint(cmd.x1, cmd.y1);
+      pushPoint(cmd.x, cmd.y);
+    } else if (cmd.type === SVGPathData.CURVE_TO) {
+      pushPoint(cmd.x1, cmd.y1);
+      pushPoint(cmd.x2, cmd.y2);
+      pushPoint(cmd.x, cmd.y);
+    }
+  }
+
+  if (!Number.isFinite(xMin) || !Number.isFinite(yMin) || !Number.isFinite(xMax) || !Number.isFinite(yMax)) {
+    return undefined;
+  }
+
+  return { xMin, yMin, xMax, yMax };
+}
+
+function innerCellRect(slotIndex: number, metadata: TemplateMetadata): { xMin: number; yMin: number; xMax: number; yMax: number } {
+  const { cols, cellWidth, cellHeight, padding } = metadata.grid;
+  const row = Math.floor(slotIndex / cols);
+  const col = slotIndex % cols;
+  const xMin = col * cellWidth + padding;
+  const yMin = row * cellHeight + padding;
+  const xMax = (col + 1) * cellWidth - padding;
+  const yMax = (row + 1) * cellHeight - padding;
+  return { xMin, yMin, xMax, yMax };
+}
+
+function distanceSquared(x1: number, y1: number, x2: number, y2: number): number {
+  const dx = x1 - x2;
+  const dy = y1 - y2;
+  return dx * dx + dy * dy;
+}
+
 export class SvgGlyphVectorImporterAdapter implements GlyphVectorImporter {
   async importFromSvg(input: string, mapping: unknown): Promise<ImportedGlyphBatch> {
     const globalIssues: ImportIssue[] = [];
@@ -387,19 +451,50 @@ export class SvgGlyphVectorImporterAdapter implements GlyphVectorImporter {
     const mappingInfo = parseMapping(mapping);
     const cells = Array.from(root.querySelectorAll("g[data-role='glyph-cell']"));
     const seen = new Set<string>();
+    const consumedPaths = new Set<Element>();
 
-    const items: Array<{
+    const cellEntries: Array<{
       glyphId: string;
-      outline: GlyphOutlineSnapshot | null;
-      bounds?: { xMin: number; yMin: number; xMax: number; yMax: number };
-      issues: readonly ImportIssue[];
-    }> = [];
-    const preview: Array<{
-      glyphId: string;
+      slotIndex: number;
       codePoint?: number;
-      status: "ok" | "warning" | "error" | "empty";
-      issues: readonly ImportIssue[];
+      issues: ImportIssue[];
+      contours: Array<Array<{ type: "M" | "L" | "Q" | "C" | "Z"; values: number[] }>>;
     }> = [];
+    const cellByGlyphId = new Map<string, (typeof cellEntries)[number]>();
+
+    const pushPathToCell = (
+      cellEntry: (typeof cellEntries)[number],
+      pathElement: Element,
+      origin: "strict" | "fallback",
+    ): void => {
+      const d = pathElement.getAttribute("d") ?? "";
+      if (!d.trim()) {
+        cellEntry.issues.push(issue("EMPTY_DRAWING", "Path sin atributo d util.", "warning", cellEntry.glyphId));
+        return;
+      }
+
+      try {
+        const normalizedInDocument = normalizePathCommands(pathElement, d);
+        const normalizedInTypeface = normalizedInDocument.map((command) => mapToTypefaceSpace(command, cellEntry.slotIndex, metadata));
+
+        const contourResult = toDomainContour(normalizedInTypeface, cellEntry.glyphId);
+        cellEntry.issues.push(...contourResult.issues);
+        if (contourResult.contour && contourResult.contour.length > 0) {
+          cellEntry.contours.push(contourResult.contour);
+        }
+
+        if (origin === "fallback") {
+          cellEntry.issues = cellEntry.issues.filter((x) => x.code !== "EMPTY_DRAWING");
+          cellEntry.issues.push(
+            issue("POSITIONAL_FALLBACK_APPLIED", "Path reasignado por posicion de celda.", "warning", cellEntry.glyphId, {
+              pathId: pathElement.getAttribute("id") ?? undefined,
+            }),
+          );
+        }
+      } catch {
+        cellEntry.issues.push(issue("UNSUPPORTED_PATH_COMMAND", "No se pudo normalizar un path.", "warning", cellEntry.glyphId));
+      }
+    };
 
     for (const cell of cells) {
       const glyphId = cell.getAttribute("data-glyph-id")?.trim();
@@ -423,55 +518,101 @@ export class SvgGlyphVectorImporterAdapter implements GlyphVectorImporter {
       }
 
       const pathElements = drawingGroup ? Array.from(drawingGroup.querySelectorAll("path")) : [];
-      const contours: Array<Array<{ type: "M" | "L" | "Q" | "C" | "Z"; values: number[] }>> = [];
+      const codePointRaw = cell.getAttribute("data-codepoint");
+      const codePoint = codePointRaw ? Number(codePointRaw) : undefined;
+
+      const cellEntry = {
+        glyphId,
+        slotIndex,
+        codePoint: Number.isFinite(codePoint) ? codePoint : undefined,
+        issues: itemIssues,
+        contours: [] as Array<Array<{ type: "M" | "L" | "Q" | "C" | "Z"; values: number[] }>>,
+      };
+      cellEntries.push(cellEntry);
+      cellByGlyphId.set(glyphId, cellEntry);
 
       if (pathElements.length === 0) {
         itemIssues.push(issue("EMPTY_DRAWING", "No se encontraron paths en drawing.", "warning", glyphId));
       }
 
       for (const pathElement of pathElements) {
-        const d = pathElement.getAttribute("d") ?? "";
-        if (!d.trim()) {
-          itemIssues.push(issue("EMPTY_DRAWING", "Path sin atributo d util.", "warning", glyphId));
-          continue;
+        consumedPaths.add(pathElement);
+        pushPathToCell(cellEntry, pathElement, "strict");
+      }
+    }
+
+    const allPaths = Array.from(doc.querySelectorAll("path"));
+    for (const pathElement of allPaths) {
+      if (consumedPaths.has(pathElement)) {
+        continue;
+      }
+      const d = pathElement.getAttribute("d") ?? "";
+      if (!d.trim() || cellEntries.length === 0) {
+        continue;
+      }
+
+      let normalizedInDocument: any[];
+      try {
+        normalizedInDocument = normalizePathCommands(pathElement, d);
+      } catch {
+        continue;
+      }
+      const sourceBounds = computeSourceBounds(normalizedInDocument);
+      if (!sourceBounds) {
+        continue;
+      }
+      const cx = (sourceBounds.xMin + sourceBounds.xMax) / 2;
+      const cy = (sourceBounds.yMin + sourceBounds.yMax) / 2;
+
+      let selected = cellEntries[0];
+      let selectedDistance = Number.POSITIVE_INFINITY;
+      for (const entry of cellEntries) {
+        const rect = innerCellRect(entry.slotIndex, metadata);
+        if (cx >= rect.xMin && cx <= rect.xMax && cy >= rect.yMin && cy <= rect.yMax) {
+          selected = entry;
+          selectedDistance = -1;
+          break;
         }
 
-        try {
-          const transform = elementTransformChain(pathElement);
-          const normalized = new SVGPathData(d)
-            .transform(SVGPathDataTransformer.TO_ABS())
-            .transform(SVGPathDataTransformer.NORMALIZE_HVZ())
-            .transform(SVGPathDataTransformer.NORMALIZE_ST())
-            .transform(SVGPathDataTransformer.A_TO_C())
-            .transform(SVGPathDataTransformer.MATRIX(transform.a, transform.b, transform.c, transform.d, transform.e, transform.f))
-            .commands
-            .map((command) => mapToTypefaceSpace(command, slotIndex, metadata));
-
-          const contourResult = toDomainContour(normalized, glyphId);
-          itemIssues.push(...contourResult.issues);
-          if (contourResult.contour && contourResult.contour.length > 0) {
-            contours.push(contourResult.contour);
-          }
-        } catch {
-          itemIssues.push(issue("UNSUPPORTED_PATH_COMMAND", "No se pudo normalizar un path.", "warning", glyphId));
+        const rx = (rect.xMin + rect.xMax) / 2;
+        const ry = (rect.yMin + rect.yMax) / 2;
+        const d2 = distanceSquared(cx, cy, rx, ry);
+        if (d2 < selectedDistance) {
+          selected = entry;
+          selectedDistance = d2;
         }
       }
 
-      const outline = contours.length > 0 ? { contours } : null;
+      pushPathToCell(selected, pathElement, "fallback");
+    }
+
+    const items: Array<{
+      glyphId: string;
+      outline: GlyphOutlineSnapshot | null;
+      bounds?: { xMin: number; yMin: number; xMax: number; yMax: number };
+      issues: readonly ImportIssue[];
+    }> = [];
+    const preview: Array<{
+      glyphId: string;
+      codePoint?: number;
+      status: "ok" | "warning" | "error" | "empty";
+      issues: readonly ImportIssue[];
+    }> = [];
+
+    for (const entry of cellEntries) {
+      const outline = entry.contours.length > 0 ? { contours: entry.contours } : null;
       const bounds = outline ? computeBounds(outline) : undefined;
-      const hasError = itemIssues.some((x) => x.severity === "error");
-      const hasWarning = itemIssues.some((x) => x.severity === "warning");
+      const hasError = entry.issues.some((x) => x.severity === "error");
+      const hasWarning = entry.issues.some((x) => x.severity === "warning");
 
       const status = hasError ? "error" : !outline ? "empty" : hasWarning ? "warning" : "ok";
-      const codePointRaw = cell.getAttribute("data-codepoint");
-      const codePoint = codePointRaw ? Number(codePointRaw) : undefined;
 
-      items.push({ glyphId, outline, bounds, issues: itemIssues });
-      preview.push({ glyphId, codePoint: Number.isFinite(codePoint) ? codePoint : undefined, status, issues: itemIssues });
+      items.push({ glyphId: entry.glyphId, outline, bounds, issues: entry.issues });
+      preview.push({ glyphId: entry.glyphId, codePoint: entry.codePoint, status, issues: entry.issues });
     }
 
     for (const requiredGlyphId of mappingInfo.requiredGlyphIds ?? []) {
-      if (!seen.has(requiredGlyphId)) {
+      if (!cellByGlyphId.has(requiredGlyphId)) {
         globalIssues.push(
           issue("CELL_NOT_FOUND", "Falta celda requerida por mapping.", "error", requiredGlyphId),
         );
