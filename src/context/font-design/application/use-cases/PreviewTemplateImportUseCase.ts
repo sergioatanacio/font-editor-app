@@ -3,6 +3,7 @@ import type { AppError } from "../../shared/errors/AppError";
 import type { Result } from "../../shared/result/Result";
 import type {
   Clock,
+  GlyphOutlineSnapshot,
   GlyphVectorImporter,
   ImportIssue,
   ImportPreviewStore,
@@ -23,6 +24,8 @@ export interface PreviewTemplateImportOutput {
     codePoint?: number;
     status: "ok" | "warning" | "error" | "empty";
     issues: readonly ImportIssue[];
+    outline?: GlyphOutlineSnapshot;
+    bounds?: { xMin: number; yMin: number; xMax: number; yMax: number };
   }>;
   summary: ImportSummary;
   issues: readonly ImportIssue[];

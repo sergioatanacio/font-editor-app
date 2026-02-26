@@ -1,4 +1,4 @@
-import type { ImportIssue, ImportSummary } from "../../../domain/ports";
+import type { GlyphOutlineSnapshot, ImportIssue, ImportSummary } from "../../../domain/ports";
 
 export type GlyphPreviewStatus = "ok" | "warning" | "error" | "empty";
 
@@ -7,6 +7,8 @@ export interface GlyphPreviewCardModel {
   codePoint?: number;
   status: GlyphPreviewStatus;
   issues: readonly ImportIssue[];
+  outline?: GlyphOutlineSnapshot;
+  bounds?: { xMin: number; yMin: number; xMax: number; yMax: number };
 }
 
 export interface GlyphDetailModel {
@@ -14,6 +16,7 @@ export interface GlyphDetailModel {
   codePoint?: number;
   status: GlyphPreviewStatus;
   issues: readonly ImportIssue[];
+  outline?: GlyphOutlineSnapshot;
   bounds?: { xMin: number; yMin: number; xMax: number; yMax: number };
 }
 

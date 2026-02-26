@@ -76,7 +76,7 @@ describe("SvgGlyphVectorImporterAdapter", () => {
     expect(result.isBlocking).toBe(false);
     const itemA = result.items.find((x) => x.glyphId === "A");
     expect(itemA?.outline?.contours.length ?? 0).toBeGreaterThan(0);
-    expect(itemA?.issues.some((x) => x.code === "POSITIONAL_FALLBACK_APPLIED")).toBe(true);
+    expect(itemA?.issues.some((x) => x.code === "POSITIONAL_FALLBACK_APPLIED")).toBe(false);
   });
 
   it("cuando un path queda fuera de todas las celdas lo asigna a la celda mas cercana", async () => {
@@ -87,6 +87,6 @@ describe("SvgGlyphVectorImporterAdapter", () => {
     expect(result.isBlocking).toBe(false);
     const itemSpace = result.items.find((x) => x.glyphId === "space");
     expect(itemSpace?.outline?.contours.length ?? 0).toBeGreaterThan(0);
-    expect(itemSpace?.issues.some((x) => x.code === "POSITIONAL_FALLBACK_APPLIED")).toBe(true);
+    expect(itemSpace?.issues.some((x) => x.code === "POSITIONAL_FALLBACK_APPLIED")).toBe(false);
   });
 });

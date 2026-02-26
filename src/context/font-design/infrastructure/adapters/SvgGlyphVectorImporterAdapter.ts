@@ -402,6 +402,68 @@ function distanceSquared(x1: number, y1: number, x2: number, y2: number): number
   return dx * dx + dy * dy;
 }
 
+function selectCellEntryForSourceBounds(
+  sourceBounds: { xMin: number; yMin: number; xMax: number; yMax: number },
+  entries: Array<{ slotIndex: number }>,
+  metadata: TemplateMetadata,
+): number {
+  const cx = (sourceBounds.xMin + sourceBounds.xMax) / 2;
+  const cy = (sourceBounds.yMin + sourceBounds.yMax) / 2;
+
+  const insideCandidates: number[] = [];
+  for (let i = 0; i < entries.length; i += 1) {
+    const rect = innerCellRect(entries[i].slotIndex, metadata);
+    if (cx >= rect.xMin && cx <= rect.xMax && cy >= rect.yMin && cy <= rect.yMax) {
+      insideCandidates.push(i);
+    }
+  }
+
+  if (insideCandidates.length > 0) {
+    insideCandidates.sort((a, b) => entries[a].slotIndex - entries[b].slotIndex);
+    return insideCandidates[0];
+  }
+
+  let best = 0;
+  let bestDistance = Number.POSITIVE_INFINITY;
+  for (let i = 0; i < entries.length; i += 1) {
+    const rect = innerCellRect(entries[i].slotIndex, metadata);
+    const rx = (rect.xMin + rect.xMax) / 2;
+    const ry = (rect.yMin + rect.yMax) / 2;
+    const d2 = distanceSquared(cx, cy, rx, ry);
+    if (d2 < bestDistance || (Math.abs(d2 - bestDistance) < 1e-9 && entries[i].slotIndex < entries[best].slotIndex)) {
+      best = i;
+      bestDistance = d2;
+    }
+  }
+
+  return best;
+}
+
+function extractParserErrorDetails(parserErrorText: string): { line?: number; column?: number; message: string } {
+  const normalized = parserErrorText.replace(/\s+/g, " ").trim();
+  const lineColMatch = normalized.match(/line\s+(\d+)\s+at\s+column\s+(\d+)/i);
+  const line = lineColMatch ? Number(lineColMatch[1]) : undefined;
+  const column = lineColMatch ? Number(lineColMatch[2]) : undefined;
+  return { line, column, message: normalized };
+}
+
+function sourceContextByLine(source: string, line?: number, column?: number): string {
+  if (!line || !Number.isFinite(line) || line < 1) {
+    return "";
+  }
+  const lines = source.split(/\r?\n/);
+  const target = lines[line - 1] ?? "";
+  if (!target) {
+    return "";
+  }
+  if (!column || !Number.isFinite(column) || column < 1) {
+    return target.slice(0, 240);
+  }
+  const start = Math.max(0, column - 80);
+  const end = Math.min(target.length, column + 80);
+  return target.slice(start, end);
+}
+
 export class SvgGlyphVectorImporterAdapter implements GlyphVectorImporter {
   async importFromSvg(input: string, mapping: unknown): Promise<ImportedGlyphBatch> {
     const globalIssues: ImportIssue[] = [];
@@ -424,13 +486,26 @@ export class SvgGlyphVectorImporterAdapter implements GlyphVectorImporter {
 
     const parser = new DOMParser();
     const doc = parser.parseFromString(input, "image/svg+xml");
-    if (doc.querySelector("parsererror")) {
+    const parserErrorNode = doc.querySelector("parsererror");
+    if (parserErrorNode) {
+      const parserErrorText = parserErrorNode.textContent ?? "parsererror without details";
+      const details = extractParserErrorDetails(parserErrorText);
       console.error("[IMPORT_TRACE][ADAPTER] fail:parsererror", {
-        preview: input.slice(0, 200),
+        parserMessage: details.message,
+        line: details.line,
+        column: details.column,
+        sourceContext: sourceContextByLine(input, details.line, details.column),
+        headPreview: input.slice(0, 220),
+        tailPreview: input.slice(Math.max(0, input.length - 220)),
       });
       return {
         items: [],
-        globalIssues: [issue("MISSING_TEMPLATE_ROOT", "SVG invalido o no parseable.", "error")],
+        globalIssues: [issue("MISSING_TEMPLATE_ROOT", "SVG invalido o no parseable.", "error", undefined, {
+          parserMessage: details.message,
+          line: details.line,
+          column: details.column,
+          sourceContext: sourceContextByLine(input, details.line, details.column),
+        })],
         preview: [],
         isBlocking: true,
       };
@@ -480,37 +555,38 @@ export class SvgGlyphVectorImporterAdapter implements GlyphVectorImporter {
     }> = [];
     const cellByGlyphId = new Map<string, (typeof cellEntries)[number]>();
 
-    const pushPathToCell = (
-      cellEntry: (typeof cellEntries)[number],
+    const assignPathByPosition = (
       pathElement: Element,
-      origin: "strict" | "fallback",
     ): void => {
       const d = pathElement.getAttribute("d") ?? "";
-      if (!d.trim()) {
-        cellEntry.issues.push(issue("EMPTY_DRAWING", "Path sin atributo d util.", "warning", cellEntry.glyphId));
+      if (!d.trim() || cellEntries.length === 0) {
         return;
       }
 
       try {
         const normalizedInDocument = normalizePathCommands(pathElement, d);
-        const normalizedInTypeface = normalizedInDocument.map((command) => mapToTypefaceSpace(command, cellEntry.slotIndex, metadata));
+        const sourceBounds = computeSourceBounds(normalizedInDocument);
+        if (!sourceBounds) {
+          return;
+        }
+
+        const selectedIndex = selectCellEntryForSourceBounds(sourceBounds, cellEntries, metadata);
+        const cellEntry = cellEntries[selectedIndex];
+        const normalizedInTypeface = normalizedInDocument.map((command) =>
+          mapToTypefaceSpace(command, cellEntry.slotIndex, metadata),
+        );
 
         const contourResult = toDomainContour(normalizedInTypeface, cellEntry.glyphId);
         cellEntry.issues.push(...contourResult.issues);
         if (contourResult.contour && contourResult.contour.length > 0) {
           cellEntry.contours.push(contourResult.contour);
         }
-
-        if (origin === "fallback") {
-          cellEntry.issues = cellEntry.issues.filter((x) => x.code !== "EMPTY_DRAWING");
-          cellEntry.issues.push(
-            issue("POSITIONAL_FALLBACK_APPLIED", "Path reasignado por posicion de celda.", "warning", cellEntry.glyphId, {
-              pathId: pathElement.getAttribute("id") ?? undefined,
-            }),
-          );
-        }
       } catch {
-        cellEntry.issues.push(issue("UNSUPPORTED_PATH_COMMAND", "No se pudo normalizar un path.", "warning", cellEntry.glyphId));
+        globalIssues.push(
+          issue("UNSUPPORTED_PATH_COMMAND", "No se pudo normalizar un path.", "warning", undefined, {
+            pathId: pathElement.getAttribute("id") ?? undefined,
+          }),
+        );
       }
     };
 
@@ -531,9 +607,6 @@ export class SvgGlyphVectorImporterAdapter implements GlyphVectorImporter {
 
       const itemIssues: ImportIssue[] = [];
       const drawingGroup = cell.querySelector("g[data-role='drawing']");
-      if (!drawingGroup) {
-        itemIssues.push(issue("DRAWING_GROUP_NOT_FOUND", "No se encontro grupo drawing.", "warning", glyphId));
-      }
 
       const pathElements = drawingGroup ? Array.from(drawingGroup.querySelectorAll("path")) : [];
       const codePointRaw = cell.getAttribute("data-codepoint");
@@ -549,13 +622,9 @@ export class SvgGlyphVectorImporterAdapter implements GlyphVectorImporter {
       cellEntries.push(cellEntry);
       cellByGlyphId.set(glyphId, cellEntry);
 
-      if (pathElements.length === 0) {
-        itemIssues.push(issue("EMPTY_DRAWING", "No se encontraron paths en drawing.", "warning", glyphId));
-      }
-
       for (const pathElement of pathElements) {
         consumedPaths.add(pathElement);
-        pushPathToCell(cellEntry, pathElement, "strict");
+        assignPathByPosition(pathElement);
       }
     }
 
@@ -564,44 +633,7 @@ export class SvgGlyphVectorImporterAdapter implements GlyphVectorImporter {
       if (consumedPaths.has(pathElement)) {
         continue;
       }
-      const d = pathElement.getAttribute("d") ?? "";
-      if (!d.trim() || cellEntries.length === 0) {
-        continue;
-      }
-
-      let normalizedInDocument: any[];
-      try {
-        normalizedInDocument = normalizePathCommands(pathElement, d);
-      } catch {
-        continue;
-      }
-      const sourceBounds = computeSourceBounds(normalizedInDocument);
-      if (!sourceBounds) {
-        continue;
-      }
-      const cx = (sourceBounds.xMin + sourceBounds.xMax) / 2;
-      const cy = (sourceBounds.yMin + sourceBounds.yMax) / 2;
-
-      let selected = cellEntries[0];
-      let selectedDistance = Number.POSITIVE_INFINITY;
-      for (const entry of cellEntries) {
-        const rect = innerCellRect(entry.slotIndex, metadata);
-        if (cx >= rect.xMin && cx <= rect.xMax && cy >= rect.yMin && cy <= rect.yMax) {
-          selected = entry;
-          selectedDistance = -1;
-          break;
-        }
-
-        const rx = (rect.xMin + rect.xMax) / 2;
-        const ry = (rect.yMin + rect.yMax) / 2;
-        const d2 = distanceSquared(cx, cy, rx, ry);
-        if (d2 < selectedDistance) {
-          selected = entry;
-          selectedDistance = d2;
-        }
-      }
-
-      pushPathToCell(selected, pathElement, "fallback");
+      assignPathByPosition(pathElement);
     }
 
     const items: Array<{
@@ -615,9 +647,14 @@ export class SvgGlyphVectorImporterAdapter implements GlyphVectorImporter {
       codePoint?: number;
       status: "ok" | "warning" | "error" | "empty";
       issues: readonly ImportIssue[];
+      outline?: GlyphOutlineSnapshot;
+      bounds?: { xMin: number; yMin: number; xMax: number; yMax: number };
     }> = [];
 
     for (const entry of cellEntries) {
+      if (entry.contours.length === 0) {
+        entry.issues.push(issue("EMPTY_DRAWING", "No se encontraron contornos para la celda.", "warning", entry.glyphId));
+      }
       const outline = entry.contours.length > 0 ? { contours: entry.contours } : null;
       const bounds = outline ? computeBounds(outline) : undefined;
       const hasError = entry.issues.some((x) => x.severity === "error");
@@ -626,7 +663,14 @@ export class SvgGlyphVectorImporterAdapter implements GlyphVectorImporter {
       const status = hasError ? "error" : !outline ? "empty" : hasWarning ? "warning" : "ok";
 
       items.push({ glyphId: entry.glyphId, outline, bounds, issues: entry.issues });
-      preview.push({ glyphId: entry.glyphId, codePoint: entry.codePoint, status, issues: entry.issues });
+      preview.push({
+        glyphId: entry.glyphId,
+        codePoint: entry.codePoint,
+        status,
+        issues: entry.issues,
+        outline: outline ?? undefined,
+        bounds,
+      });
     }
 
     for (const requiredGlyphId of mappingInfo.requiredGlyphIds ?? []) {

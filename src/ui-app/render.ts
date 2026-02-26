@@ -1,6 +1,56 @@
 ﻿import type { FontDesignApp } from "../context/font-design/main";
 import type { AppState } from "./types";
 import { htmlEscape } from "./utils";
+import type { GlyphOutlineSnapshot } from "../context/font-design/domain/ports";
+
+function buildPathData(outline?: GlyphOutlineSnapshot): string {
+  if (!outline || outline.contours.length === 0) {
+    return "";
+  }
+  const parts: string[] = [];
+  for (const contour of outline.contours) {
+    for (const cmd of contour) {
+      if (cmd.type === "M" || cmd.type === "L") {
+        parts.push(`${cmd.type}${cmd.values[0]} ${-cmd.values[1]}`);
+      } else if (cmd.type === "Q") {
+        parts.push(`Q${cmd.values[0]} ${-cmd.values[1]} ${cmd.values[2]} ${-cmd.values[3]}`);
+      } else if (cmd.type === "C") {
+        parts.push(`C${cmd.values[0]} ${-cmd.values[1]} ${cmd.values[2]} ${-cmd.values[3]} ${cmd.values[4]} ${-cmd.values[5]}`);
+      } else if (cmd.type === "Z") {
+        parts.push("Z");
+      }
+    }
+  }
+  return parts.join(" ");
+}
+
+function previewViewBox(
+  bounds?: { xMin: number; yMin: number; xMax: number; yMax: number },
+): string {
+  if (!bounds) {
+    return "0 0 1000 1000";
+  }
+  const xMin = bounds.xMin;
+  const xMax = bounds.xMax;
+  const yMin = -bounds.yMax;
+  const yMax = -bounds.yMin;
+  const w = Math.max(1, xMax - xMin);
+  const h = Math.max(1, yMax - yMin);
+  const pad = Math.max(w, h) * 0.12;
+  return `${xMin - pad} ${yMin - pad} ${w + pad * 2} ${h + pad * 2}`;
+}
+
+function renderGlyphThumb(params: {
+  outline?: GlyphOutlineSnapshot;
+  bounds?: { xMin: number; yMin: number; xMax: number; yMax: number };
+  glyphId: string;
+}): string {
+  const d = buildPathData(params.outline);
+  if (!d) {
+    return `<div class="glyph-thumb empty">vacio</div>`;
+  }
+  return `<div class="glyph-thumb"><svg viewBox="${previewViewBox(params.bounds)}" preserveAspectRatio="xMidYMid meet" aria-label="preview-${htmlEscape(params.glyphId)}"><path d="${htmlEscape(d)}" fill="currentColor"/></svg></div>`;
+}
 
 function renderStatus(state: AppState): string {
   if (!state.status) return "";
@@ -84,7 +134,7 @@ function renderPrevisualizacionImportacion(app: FontDesignApp, state: AppState):
     ? `<small>Issues: ${htmlEscape(issueCodes.slice(0, 8).join(", "))}${issueCodes.length > 8 ? "..." : ""}</small>`
     : "";
   const cards = items
-    .map((x) => `<div class="card" data-glyph-id="${htmlEscape(x.glyphId)}"><strong>${htmlEscape(x.glyphId)}</strong><br/><span class="badge ${x.status}">${x.status}</span><small>issues: ${x.issues.length}</small></div>`)
+    .map((x) => `<div class="card" data-glyph-id="${htmlEscape(x.glyphId)}">${renderGlyphThumb({ outline: x.outline, bounds: x.bounds, glyphId: x.glyphId })}<strong>${htmlEscape(x.glyphId)}</strong><br/><span class="badge ${x.status}">${x.status}</span><small>issues: ${x.issues.length}</small></div>`)
     .join("");
 
   return `

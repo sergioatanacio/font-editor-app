@@ -32,6 +32,8 @@ export class PrevisualizacionImportacionScreen {
       codePoint: item.codePoint,
       status: item.status,
       issues: item.issues,
+      outline: item.outline,
+      bounds: item.bounds,
     };
 
     return toGlyphDetailPanelModel(this.selectedGlyph);

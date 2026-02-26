@@ -21,6 +21,8 @@ export interface ImportPreviewItem {
   codePoint?: number;
   status: "ok" | "warning" | "error" | "empty";
   issues: readonly ImportIssue[];
+  outline?: GlyphOutlineSnapshot;
+  bounds?: { xMin: number; yMin: number; xMax: number; yMax: number };
 }
 
 export interface ImportSummary {

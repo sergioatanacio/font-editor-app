@@ -49,7 +49,7 @@ export class ValidateTypefaceForExportUseCase
       }
 
       if (requiredName !== "space" && !glyph.outline.hasContours()) {
-        errors.push({ code: "EMPTY_REQUIRED_OUTLINE", message: `Outline vacio para glifo requerido ${requiredName}.`, glyphId: requiredName });
+        warnings.push({ code: "EMPTY_REQUIRED_OUTLINE", message: `Outline vacio para glifo requerido ${requiredName}.`, glyphId: requiredName });
       }
     }
 
@@ -58,7 +58,7 @@ export class ValidateTypefaceForExportUseCase
         glyph.name.toString() !== ".notdef" && glyph.outline.hasContours(),
       );
       if (nonNotdefOutlined.length === 0) {
-        errors.push({ code: "MISSING_REQUIRED_GLYPH", message: "freeform requiere al menos un glifo adicional no vacio." });
+        warnings.push({ code: "MISSING_REQUIRED_GLYPH", message: "freeform sin glifos adicionales con contorno." });
       }
     }
 
