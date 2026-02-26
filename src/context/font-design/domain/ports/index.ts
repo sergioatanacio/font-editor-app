@@ -76,6 +76,7 @@ export interface TypefaceSnapshot {
 export interface ImportedGlyphBatch {
   items: ReadonlyArray<{
     glyphId: string;
+    codePoint?: number;
     outline: GlyphOutlineSnapshot | null;
     bounds?: { xMin: number; yMin: number; xMax: number; yMax: number };
     issues: readonly ImportIssue[];

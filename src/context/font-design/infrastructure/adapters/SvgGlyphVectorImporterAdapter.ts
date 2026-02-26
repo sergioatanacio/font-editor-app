@@ -638,6 +638,7 @@ export class SvgGlyphVectorImporterAdapter implements GlyphVectorImporter {
 
     const items: Array<{
       glyphId: string;
+      codePoint?: number;
       outline: GlyphOutlineSnapshot | null;
       bounds?: { xMin: number; yMin: number; xMax: number; yMax: number };
       issues: readonly ImportIssue[];
@@ -662,7 +663,7 @@ export class SvgGlyphVectorImporterAdapter implements GlyphVectorImporter {
 
       const status = hasError ? "error" : !outline ? "empty" : hasWarning ? "warning" : "ok";
 
-      items.push({ glyphId: entry.glyphId, outline, bounds, issues: entry.issues });
+      items.push({ glyphId: entry.glyphId, codePoint: entry.codePoint, outline, bounds, issues: entry.issues });
       preview.push({
         glyphId: entry.glyphId,
         codePoint: entry.codePoint,

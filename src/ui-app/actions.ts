@@ -317,8 +317,21 @@ export function mountActions(ctx: UiContext): void {
         warnings: vm.data?.warnings.map((x) => x.code).slice(0, 20) ?? [],
       });
       downloadDiagnostic("validate-readiness", { before, after });
-      if (vm.status === "success") setStatus("success", "Readiness valido.");
-      else if (vm.error) setStatus("error", `${vm.error.code}: ${vm.error.message}`);
+      const blockedByMissingImport =
+        vm.status === "error" &&
+        vm.error?.code === "EXPORT_BLOCKED_BY_READINESS" &&
+        (vm.data?.errors ?? []).some((x) => x.code === "NO_OUTLINED_GLYPHS");
+      if (vm.status === "success") {
+        setStatus("success", "Readiness valido.");
+      } else if (blockedByMissingImport) {
+        state.route = "PrevisualizacionImportacion";
+        setStatus(
+          "warning",
+          "Paso previo faltante: importa SVG y pulsa 'Confirmar aplicacion' antes de validar/exportar.",
+        );
+      } else if (vm.error) {
+        setStatus("error", `${vm.error.code}: ${vm.error.message}`);
+      }
       render();
     };
   }
@@ -357,6 +370,12 @@ export function mountActions(ctx: UiContext): void {
       if (vm.status === "success") {
         const outName = vm.data?.filename ?? filename;
         setStatus("success", `Fuente exportada: ${outName} (${vm.data?.byteLength} bytes).`);
+      } else if (vm.error?.code === "EXPORT_BLOCKED_BY_READINESS") {
+        state.route = "PrevisualizacionImportacion";
+        setStatus(
+          "warning",
+          "Exportacion bloqueada por flujo incompleto. Vuelve a PrevisualizacionImportacion y confirma la aplicacion.",
+        );
       }
       else if (vm.error) setStatus("error", `${vm.error.code}: ${vm.error.message}`);
       render();

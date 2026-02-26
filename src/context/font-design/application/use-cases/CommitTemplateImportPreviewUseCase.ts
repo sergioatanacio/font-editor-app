@@ -5,6 +5,7 @@ import { Glyph } from "../../domain/entities/Glyph";
 import { GlyphId } from "../../domain/value-objects/GlyphId";
 import { GlyphMetrics } from "../../domain/value-objects/GlyphMetrics";
 import { GlyphName } from "../../domain/value-objects/GlyphName";
+import { UnicodeCodePoint } from "../../domain/value-objects/UnicodeCodePoint";
 import type { Clock, ImportIssue, ImportPreviewStore, ProjectRepository } from "../../domain/ports";
 import { toDomainTypeface, toTypefaceSnapshot } from "./typefaceSnapshotMapper";
 import { GlyphOutline } from "../../domain/value-objects/GlyphOutline";
@@ -106,6 +107,15 @@ export class CommitTemplateImportPreviewUseCase
     let nextTypeface = typefaceResult.value;
 
     for (const item of preview.batch.items) {
+      let unicode: UnicodeCodePoint | undefined;
+      if (item.codePoint != null) {
+        const unicodeResult = UnicodeCodePoint.create(item.codePoint);
+        if (!unicodeResult.ok) {
+          return { ok: false, error: fromDomainError(unicodeResult.error) };
+        }
+        unicode = unicodeResult.value;
+      }
+
       const glyphId = GlyphId.create(item.glyphId);
       if (!glyphId.ok) {
         return { ok: false, error: fromDomainError(glyphId.error) };
@@ -115,7 +125,9 @@ export class CommitTemplateImportPreviewUseCase
 
       if (item.outline == null) {
         if (existing) {
-          const clearResult = nextTypeface.replaceGlyph(existing.clearOutline());
+          const cleared = existing.clearOutline();
+          const withUnicode = unicode ? cleared.assignUnicode(unicode) : cleared;
+          const clearResult = nextTypeface.replaceGlyph(withUnicode);
           if (!clearResult.ok) {
             return { ok: false, error: fromDomainError(clearResult.error) };
           }
@@ -142,6 +154,7 @@ export class CommitTemplateImportPreviewUseCase
           kind: inferGlyphKind(item.glyphId),
           metrics: metrics.value,
           outline: GlyphOutline.empty(),
+          unicode,
         });
         if (!glyph.ok) {
           return { ok: false, error: fromDomainError(glyph.error) };
@@ -163,7 +176,9 @@ export class CommitTemplateImportPreviewUseCase
       }
 
       if (existing) {
-        const replaceResult = nextTypeface.replaceGlyph(existing.replaceOutline(outline.value));
+        const replaced = existing.replaceOutline(outline.value);
+        const withUnicode = unicode ? replaced.assignUnicode(unicode) : replaced;
+        const replaceResult = nextTypeface.replaceGlyph(withUnicode);
         if (!replaceResult.ok) {
           return { ok: false, error: fromDomainError(replaceResult.error) };
         }
@@ -190,6 +205,7 @@ export class CommitTemplateImportPreviewUseCase
         kind: inferGlyphKind(item.glyphId),
         metrics: metrics.value,
         outline: outline.value,
+        unicode,
       });
       if (!glyph.ok) {
         return { ok: false, error: fromDomainError(glyph.error) };
