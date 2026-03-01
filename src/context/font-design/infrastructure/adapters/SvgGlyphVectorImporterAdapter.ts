@@ -338,6 +338,21 @@ function parseMapping(mapping: unknown): TemplateMappingLike {
   };
 }
 
+function statusFromIssues(
+  issues: readonly ImportIssue[],
+  outline: GlyphOutlineSnapshot | null,
+): "ok" | "warning" | "error" | "empty" {
+  const hasError = issues.some((x) => x.severity === "error");
+  const hasWarning = issues.some((x) => x.severity === "warning");
+  if (hasError) {
+    return "error";
+  }
+  if (!outline) {
+    return "empty";
+  }
+  return hasWarning ? "warning" : "ok";
+}
+
 function normalizePathCommands(pathElement: Element, d: string): any[] {
   const transform = elementTransformChain(pathElement);
   return new SVGPathData(d)
@@ -629,11 +644,73 @@ export class SvgGlyphVectorImporterAdapter implements GlyphVectorImporter {
     }
 
     const allPaths = Array.from(doc.querySelectorAll("path"));
+    const unmappedPreview: Array<{
+      glyphId: string;
+      status: "ok" | "warning" | "error" | "empty";
+      issues: readonly ImportIssue[];
+      outline?: GlyphOutlineSnapshot;
+      bounds?: { xMin: number; yMin: number; xMax: number; yMax: number };
+    }> = [];
+    let unmappedIndex = 1;
     for (const pathElement of allPaths) {
       if (consumedPaths.has(pathElement)) {
         continue;
       }
+      // Mantiene compatibilidad: los paths fuera de "drawing" siguen reasignandose por posicion.
       assignPathByPosition(pathElement);
+
+      const d = pathElement.getAttribute("d") ?? "";
+      const glyphId = `unmapped:${unmappedIndex}`;
+      unmappedIndex += 1;
+
+      const itemIssues: ImportIssue[] = [
+        issue(
+          "UNMAPPED_SVG_PATH",
+          "Path detectado fuera de una celda de glifo; se muestra en preview pero no se aplicara al commit.",
+          "warning",
+          glyphId,
+          { pathId: pathElement.getAttribute("id") ?? undefined },
+        ),
+      ];
+
+      if (!d.trim()) {
+        itemIssues.push(issue("EMPTY_DRAWING", "Path sin comando 'd'.", "warning", glyphId));
+        unmappedPreview.push({
+          glyphId,
+          status: statusFromIssues(itemIssues, null),
+          issues: itemIssues,
+        });
+        continue;
+      }
+
+      try {
+        const normalized = normalizePathCommands(pathElement, d);
+        const contourResult = toDomainContour(normalized, glyphId);
+        itemIssues.push(...contourResult.issues);
+        const outline = contourResult.contour && contourResult.contour.length > 0
+          ? { contours: [contourResult.contour] }
+          : null;
+
+        if (!outline) {
+          itemIssues.push(issue("EMPTY_DRAWING", "No se pudieron extraer contornos del path.", "warning", glyphId));
+        }
+
+        const bounds = outline ? computeBounds(outline) : undefined;
+        unmappedPreview.push({
+          glyphId,
+          status: statusFromIssues(itemIssues, outline),
+          issues: itemIssues,
+          outline: outline ?? undefined,
+          bounds,
+        });
+      } catch {
+        itemIssues.push(issue("UNSUPPORTED_PATH_COMMAND", "No se pudo normalizar un path.", "warning", glyphId));
+        unmappedPreview.push({
+          glyphId,
+          status: statusFromIssues(itemIssues, null),
+          issues: itemIssues,
+        });
+      }
     }
 
     const items: Array<{
@@ -658,10 +735,7 @@ export class SvgGlyphVectorImporterAdapter implements GlyphVectorImporter {
       }
       const outline = entry.contours.length > 0 ? { contours: entry.contours } : null;
       const bounds = outline ? computeBounds(outline) : undefined;
-      const hasError = entry.issues.some((x) => x.severity === "error");
-      const hasWarning = entry.issues.some((x) => x.severity === "warning");
-
-      const status = hasError ? "error" : !outline ? "empty" : hasWarning ? "warning" : "ok";
+      const status = statusFromIssues(entry.issues, outline);
 
       items.push({ glyphId: entry.glyphId, codePoint: entry.codePoint, outline, bounds, issues: entry.issues });
       preview.push({
@@ -673,6 +747,8 @@ export class SvgGlyphVectorImporterAdapter implements GlyphVectorImporter {
         bounds,
       });
     }
+
+    preview.push(...unmappedPreview);
 
     for (const requiredGlyphId of mappingInfo.requiredGlyphIds ?? []) {
       if (!cellByGlyphId.has(requiredGlyphId)) {
