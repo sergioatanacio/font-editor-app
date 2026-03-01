@@ -53,7 +53,7 @@ describe("InMemoryDomainEventBus", () => {
     const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
 
     const failingHandler: DomainEventHandler = {
-      canHandle: () => true,
+      canHandle: (_event: DomainEvent): _event is DomainEvent => true,
       async handle() {
         throw new Error("boom");
       },
