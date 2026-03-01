@@ -13,3 +13,4 @@ export { TypefaceMetadata } from "./value-objects/TypefaceMetadata";
 export { GlyphOutline } from "./value-objects/GlyphOutline";
 
 export * from "./ports";
+export * from "./services";

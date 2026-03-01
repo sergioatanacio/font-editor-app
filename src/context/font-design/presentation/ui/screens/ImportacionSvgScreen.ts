@@ -1,4 +1,4 @@
-import type { ImportFacade } from "../../../application/facades/ImportFacade";
+import type { ImportFacade } from "../../../slices";
 import { createGlyphStatusFilterBar } from "../components/GlyphStatusFilterBar";
 import { filterGlyphPreview } from "../components/GlyphPreviewGrid";
 import { toImportSummaryPanelModel } from "../components/ImportSummaryPanel";

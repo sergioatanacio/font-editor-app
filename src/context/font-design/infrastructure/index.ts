@@ -3,6 +3,7 @@ export * from "./repositories";
 export * from "./serializers";
 export * from "./gateways";
 export * from "./workers";
+export * from "./events";
 
 export * from "./persistence";
 export * from "./ids";

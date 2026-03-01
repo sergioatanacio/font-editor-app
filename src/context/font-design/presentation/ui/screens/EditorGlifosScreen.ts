@@ -1,5 +1,5 @@
 import { errorState, idleState, loadingState, successState, type ViewState } from "../state/ViewState";
-import type { TypefaceFacade } from "../../../application/facades/TypefaceFacade";
+import type { TypefaceFacade } from "../../../slices";
 
 export interface EditorGlifosData {
   note: string;

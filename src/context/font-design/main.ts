@@ -1,23 +1,23 @@
 import {
-  CreateTypefaceUseCase,
-  PreviewTemplateImportUseCase,
+  AssignUnicodeToGlyphUseCase,
   CommitTemplateImportPreviewUseCase,
-  ExportTypefaceToTtfUseCase,
-  ProjectFacade,
-  ImportFacade,
+  CreateTypefaceUseCase,
   ExportFacade,
+  ExportTypefaceToTtfUseCase,
+  ImportFacade,
+  LoadProjectFromFileUseCase,
+  PreviewTemplateImportUseCase,
+  ProjectFacade,
+  ReplaceGlyphOutlineUseCase,
+  SaveProjectToFileUseCase,
+  TypefaceFacade,
+  UpdateGlyphMetricsUseCase,
   UpdateTypefaceMetadataUseCase,
   UpdateTypefaceMetricsUseCase,
-  AssignUnicodeToGlyphUseCase,
-  ReplaceGlyphOutlineUseCase,
-  UpdateGlyphMetricsUseCase,
-  GenerateTemplateSvgUseCase,
-  SaveProjectToFileUseCase,
-  LoadProjectFromFileUseCase,
   ValidateTypefaceForExportUseCase,
-  TypefaceFacade,
+  GenerateTemplateSvgUseCase,
   TemplateFacade,
-} from "./application";
+} from "./slices";
 import {
   InMemoryImportPreviewStore,
   InMemoryProjectRepository,
@@ -38,6 +38,9 @@ import {
   ImportPreviewStoreAdapter,
   SvgTemplateExporterAdapter,
   StubTemplateExporter,
+  ConsoleDomainEventLogger,
+  InMemoryDomainEventBus,
+  NoOpDomainEventBus,
 } from "./infrastructure";
 import {
   UiController,
@@ -98,6 +101,10 @@ export function createFontDesignApp(): FontDesignApp {
 
   const ttfExporter = isBrowser ? new TtfExporterAdapter() : new StubFontBinaryExporter();
   const templateExporter = isBrowser ? new SvgTemplateExporterAdapter() : new StubTemplateExporter();
+  const eventBus = isBrowser ? new InMemoryDomainEventBus() : new NoOpDomainEventBus();
+  if (eventBus instanceof InMemoryDomainEventBus) {
+    eventBus.subscribe(new ConsoleDomainEventLogger());
+  }
 
   const createTypeface = new CreateTypefaceUseCase(projectRepository, clock, idGenerator);
   const updateTypefaceMetadata = new UpdateTypefaceMetadataUseCase(projectRepository, clock);
@@ -133,8 +140,8 @@ export function createFontDesignApp(): FontDesignApp {
   const typefaceFacade = new TypefaceFacade(assignUnicode, replaceGlyphOutline, updateGlyphMetrics);
   const templateFacade = new TemplateFacade(generateTemplateSvg, fileSystemGateway);
 
-  const importFacade = new ImportFacade(previewTemplateImport, commitTemplateImport);
-  const exportFacade = new ExportFacade(exportTypefaceToTtf, validateTypefaceForExport);
+  const importFacade = new ImportFacade(previewTemplateImport, commitTemplateImport, eventBus);
+  const exportFacade = new ExportFacade(exportTypefaceToTtf, validateTypefaceForExport, eventBus);
 
   const ui = new UiController({
     inicioProyecto: new InicioProyectoScreen(projectFacade),

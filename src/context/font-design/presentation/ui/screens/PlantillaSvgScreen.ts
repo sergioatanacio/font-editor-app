@@ -1,5 +1,5 @@
 import { errorState, idleState, loadingState, successState, type ViewState } from "../state/ViewState";
-import type { TemplateFacade } from "../../../application/facades/TypefaceFacade";
+import type { TemplateFacade } from "../../../slices";
 
 export interface PlantillaSvgData {
   statusMessage?: string;

@@ -1,4 +1,4 @@
-import type { ExportFacade, ExportReadinessReport } from "../../../application/facades/ExportFacade";
+import type { ExportFacade, ExportReadinessReport } from "../../../slices";
 import { errorState, idleState, loadingState, successState, type ViewState } from "../state/ViewState";
 
 export class ValidacionExportacionScreen {

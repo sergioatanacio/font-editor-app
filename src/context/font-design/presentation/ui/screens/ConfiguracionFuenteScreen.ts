@@ -1,5 +1,5 @@
 import { loadingState, successState, errorState, idleState, type ViewState } from "../state/ViewState";
-import type { ProjectFacade } from "../../../application/facades/ProjectFacade";
+import type { ProjectFacade } from "../../../slices";
 
 export interface ConfiguracionFuenteData {
   baseline: 0;

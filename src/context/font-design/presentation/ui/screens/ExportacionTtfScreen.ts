@@ -1,4 +1,4 @@
-import type { ExportFacade } from "../../../application/facades/ExportFacade";
+import type { ExportFacade } from "../../../slices";
 import { errorState, idleState, loadingState, successState, type ViewState } from "../state/ViewState";
 
 export interface ExportacionTtfData {

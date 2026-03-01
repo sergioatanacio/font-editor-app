@@ -1,4 +1,4 @@
-import type { ProjectFacade } from "../../../application/facades/ProjectFacade";
+import type { ProjectFacade } from "../../../slices";
 import { createExportPresetSelector } from "../components/ExportPresetSelector";
 import {
   deriveTemplateCharacterPreset,

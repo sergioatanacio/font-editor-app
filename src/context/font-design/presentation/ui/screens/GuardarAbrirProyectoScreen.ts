@@ -1,4 +1,4 @@
-import type { ProjectFacade } from "../../../application/facades/ProjectFacade";
+import type { ProjectFacade } from "../../../slices";
 import { errorState, idleState, loadingState, successState, type ViewState } from "../state/ViewState";
 
 export interface GuardarAbrirProyectoData {
