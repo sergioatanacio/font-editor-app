@@ -4,6 +4,7 @@ import {
   CreateTypefaceUseCase,
   ExportFacade,
   ExportTypefaceToTtfUseCase,
+  GetTypefaceSnapshotUseCase,
   ImportFacade,
   LoadProjectFromFileUseCase,
   PreviewTemplateImportUseCase,
@@ -111,6 +112,7 @@ export function createFontDesignApp(): FontDesignApp {
   const updateTypefaceMetrics = new UpdateTypefaceMetricsUseCase(projectRepository, clock);
 
   const assignUnicode = new AssignUnicodeToGlyphUseCase(projectRepository, clock);
+  const getTypefaceSnapshot = new GetTypefaceSnapshotUseCase(projectRepository);
   const replaceGlyphOutline = new ReplaceGlyphOutlineUseCase(projectRepository, clock);
   const updateGlyphMetrics = new UpdateGlyphMetricsUseCase(projectRepository, clock);
 
@@ -137,7 +139,7 @@ export function createFontDesignApp(): FontDesignApp {
     clock,
   );
 
-  const typefaceFacade = new TypefaceFacade(assignUnicode, replaceGlyphOutline, updateGlyphMetrics);
+  const typefaceFacade = new TypefaceFacade(getTypefaceSnapshot, assignUnicode, replaceGlyphOutline, updateGlyphMetrics);
   const templateFacade = new TemplateFacade(generateTemplateSvg, fileSystemGateway);
 
   const importFacade = new ImportFacade(previewTemplateImport, commitTemplateImport, eventBus);

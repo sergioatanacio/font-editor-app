@@ -1,6 +1,9 @@
 import type { FileSystemGateway } from "../../domain/ports";
 
 export class BrowserFileSystemGatewayAdapter implements FileSystemGateway {
+  private linkedHandle: unknown | null = null;
+  private linkedFilename = "";
+
   async saveFile(filename: string, content: Blob | Uint8Array | string): Promise<void> {
     const toArrayBuffer = (bytes: Uint8Array): ArrayBuffer => {
       const buffer = new ArrayBuffer(bytes.byteLength);
@@ -41,5 +44,53 @@ export class BrowserFileSystemGatewayAdapter implements FileSystemGateway {
 
     const content = await file.text();
     return { name: file.name, content };
+  }
+
+  supportsLinkedFile(): boolean {
+    return typeof (window as { showSaveFilePicker?: unknown }).showSaveFilePicker === "function";
+  }
+
+  async linkFile(suggestedName: string): Promise<{ filename: string } | null> {
+    const anyWindow = window as unknown as {
+      showSaveFilePicker?: (options: unknown) => Promise<{
+        name?: string;
+      } & {
+        createWritable: () => Promise<{ write: (chunk: Blob | Uint8Array | string) => Promise<void>; close: () => Promise<void> }>;
+      }>;
+    };
+    if (typeof anyWindow.showSaveFilePicker !== "function") {
+      return null;
+    }
+
+    const handle = await anyWindow.showSaveFilePicker({
+      suggestedName,
+      types: [{
+        description: "Proyecto tipografia",
+        accept: { "application/json": [".json"] },
+      }],
+    });
+    this.linkedHandle = handle;
+    this.linkedFilename = handle.name ?? suggestedName;
+    return { filename: this.linkedFilename };
+  }
+
+  async saveLinkedFile(content: Blob | Uint8Array | string): Promise<{ filename: string } | null> {
+    const handle = this.linkedHandle as {
+      createWritable?: () => Promise<{ write: (chunk: Blob | Uint8Array | string) => Promise<void>; close: () => Promise<void> }>;
+      name?: string;
+    } | null;
+    if (!handle || typeof handle.createWritable !== "function") {
+      return null;
+    }
+    const writable = await handle.createWritable();
+    await writable.write(content);
+    await writable.close();
+    const filename = handle.name ?? this.linkedFilename ?? "proyecto-tipografia.json";
+    this.linkedFilename = filename;
+    return { filename };
+  }
+
+  getLinkedFilename(): string | null {
+    return this.linkedFilename || null;
   }
 }

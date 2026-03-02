@@ -1,7 +1,9 @@
-﻿import type { FontDesignApp } from "../context/font-design/main";
+import type { FontDesignApp } from "../context/font-design/main";
 import type { AppState } from "./types";
 import { htmlEscape } from "./utils";
 import type { GlyphOutlineSnapshot } from "../context/font-design/domain/ports";
+import { applyTransformToOutline } from "./outlineTransform";
+import { layoutSpecimen, outlineBounds } from "./specimen";
 
 function buildPathData(outline?: GlyphOutlineSnapshot): string {
   if (!outline || outline.contours.length === 0) {
@@ -16,6 +18,27 @@ function buildPathData(outline?: GlyphOutlineSnapshot): string {
         parts.push(`Q${cmd.values[0]} ${-cmd.values[1]} ${cmd.values[2]} ${-cmd.values[3]}`);
       } else if (cmd.type === "C") {
         parts.push(`C${cmd.values[0]} ${-cmd.values[1]} ${cmd.values[2]} ${-cmd.values[3]} ${cmd.values[4]} ${-cmd.values[5]}`);
+      } else if (cmd.type === "Z") {
+        parts.push("Z");
+      }
+    }
+  }
+  return parts.join(" ");
+}
+
+function buildPathDataRaw(outline?: GlyphOutlineSnapshot): string {
+  if (!outline || outline.contours.length === 0) {
+    return "";
+  }
+  const parts: string[] = [];
+  for (const contour of outline.contours) {
+    for (const cmd of contour) {
+      if (cmd.type === "M" || cmd.type === "L") {
+        parts.push(`${cmd.type}${cmd.values[0]} ${cmd.values[1]}`);
+      } else if (cmd.type === "Q") {
+        parts.push(`Q${cmd.values[0]} ${cmd.values[1]} ${cmd.values[2]} ${cmd.values[3]}`);
+      } else if (cmd.type === "C") {
+        parts.push(`C${cmd.values[0]} ${cmd.values[1]} ${cmd.values[2]} ${cmd.values[3]} ${cmd.values[4]} ${cmd.values[5]}`);
       } else if (cmd.type === "Z") {
         parts.push("Z");
       }
@@ -160,17 +183,93 @@ function renderPrevisualizacionImportacion(app: FontDesignApp, state: AppState):
   </div>`;
 }
 
-function renderEditorGlifos(): string {
+function renderEditorGlifos(app: FontDesignApp, state: AppState): string {
+  const vm = app.ui.screens.editorGlifos.getState().data;
+  const typeface = vm?.typeface;
+
+  if (!typeface) {
+    return `
+    <div class="panel">
+      <h2>EditorGlifos</h2>
+      <small>Carga un proyecto y pulsa "Refrescar glifos" para editar visualmente.</small>
+      <div class="actions"><button class="secondary" id="refreshGlyphEditorBtn">Refrescar glifos</button></div>
+      <hr/>
+      <small>Opcional: no necesitas editar aqui para importar y exportar.</small>
+      <div class="grid">
+        <div class="field"><label>glyphId</label><input id="editGlyphId" value="A" /></div>
+        <div class="field"><label>Unicode code point</label><input id="editCodePoint" type="number" value="65" /></div>
+        <div class="field"><label>advanceWidth</label><input id="editAdvance" type="number" value="600" /></div>
+        <div class="field"><label>leftSideBearing</label><input id="editLsb" type="number" value="0" /></div>
+        <div class="field"><label>Outline JSON</label><textarea id="editOutline">{"contours":[[{"type":"M","values":[0,0]},{"type":"L","values":[500,700]},{"type":"L","values":[1000,0]},{"type":"Z","values":[]}]]}</textarea></div>
+      </div>
+      <div class="actions">
+        <button class="secondary" id="assignUnicodeBtn">Asignar Unicode</button>
+        <button class="secondary" id="updateGlyphMetricsBtn">Actualizar metricas</button>
+        <button class="primary" id="replaceOutlineBtn">Reemplazar outline</button>
+      </div>
+    </div>`;
+  }
+
+  const layout = layoutSpecimen(typeface, state.specimenText);
+  const selected = layout.items[state.selectedRunIndex] ?? layout.items[0];
+  const selectedGlyph = selected ? typeface.glyphs.find((x) => x.id === selected.glyphId) : null;
+  const selectedOutline = selectedGlyph?.outline;
+  const bounds = selectedOutline ? outlineBounds(selectedOutline) : null;
+  const pivotX = bounds ? (bounds.xMin + bounds.xMax) * 0.5 : 0;
+  const pivotY = bounds ? (bounds.yMin + bounds.yMax) * 0.5 : 0;
+
+  const baseLineY = layout.items[0]?.baselineY ?? layout.ascender;
+
+  const glyphSvg = layout.items.map((item, index) => {
+    const isSelected = !!selected && selected.runIndex === item.runIndex;
+    const transformedOutline = isSelected
+      ? applyTransformToOutline(item.outline, { moveX: state.editMoveX, moveY: state.editMoveY, scale: state.editScale }, pivotX, pivotY)
+      : item.outline;
+    const d = buildPathDataRaw(transformedOutline);
+    if (!d) return "";
+    const css = isSelected ? "specimen-glyph selected" : "specimen-glyph";
+    return `<g class="${css}" data-run-index="${index}" data-glyph-id="${htmlEscape(item.glyphId)}" transform="translate(${item.x},${item.baselineY}) scale(1,-1)"><path d="${htmlEscape(d)}"/></g>`;
+  }).join("");
+
   return `
   <div class="panel">
     <h2>EditorGlifos</h2>
+    <div class="actions">
+      <button class="secondary" id="refreshGlyphEditorBtn">Refrescar glifos</button>
+      <span class="autosave-chip ${state.autosaveSaving ? "saving" : state.autosaveError ? "error" : state.autosaveDirty ? "dirty" : "ok"}">
+        ${state.autosaveSaving ? "Guardando..." : state.autosaveError ? htmlEscape(`Error: ${state.autosaveError}`) : state.autosaveDirty ? "Cambios pendientes" : state.autosaveLastSavedAt ? htmlEscape(`Guardado ${state.autosaveLastSavedAt}`) : "Sin cambios"}
+      </span>
+    </div>
+    <div class="field"><label>Texto de prueba</label><input id="specimenTextInput" value="${htmlEscape(state.specimenText)}" /></div>
+    <div class="specimen-layout">
+      <div class="specimen-canvas-wrap">
+        <svg id="specimenCanvas" class="specimen-canvas" viewBox="0 0 ${layout.width} ${layout.height}" preserveAspectRatio="xMinYMin meet">
+          <line x1="0" y1="${baseLineY}" x2="${layout.width}" y2="${baseLineY}" class="baseline"/>
+          <line x1="0" y1="${baseLineY - layout.ascender}" x2="${layout.width}" y2="${baseLineY - layout.ascender}" class="metric-line"/>
+          <line x1="0" y1="${baseLineY - layout.descender}" x2="${layout.width}" y2="${baseLineY - layout.descender}" class="metric-line"/>
+          ${glyphSvg}
+        </svg>
+      </div>
+      <div class="panel mini">
+        <strong>Seleccion</strong><br/>
+        <small>${selected ? `char='${htmlEscape(selected.char)}' glyph=${htmlEscape(selected.glyphId)} cp=${selected.codePoint}` : "Sin seleccion"}</small>
+        <div class="field"><label>Mover X</label><input id="glyphMoveX" type="number" step="1" value="${state.editMoveX}" /></div>
+        <div class="field"><label>Mover Y</label><input id="glyphMoveY" type="number" step="1" value="${state.editMoveY}" /></div>
+        <div class="field"><label>Escala</label><input id="glyphScale" type="number" step="0.01" min="0.1" value="${state.editScale}" /></div>
+        <div class="actions">
+          <button class="secondary" id="resetGlyphTransformBtn">Reset</button>
+          <button class="primary" id="applyGlyphTransformNowBtn">Aplicar ahora</button>
+        </div>
+      </div>
+    </div>
+    <hr/>
     <small>Opcional: no necesitas editar aqui para importar y exportar.</small>
     <div class="grid">
-      <div class="field"><label>glyphId</label><input id="editGlyphId" value="A" /></div>
-      <div class="field"><label>Unicode code point</label><input id="editCodePoint" type="number" value="65" /></div>
-      <div class="field"><label>advanceWidth</label><input id="editAdvance" type="number" value="600" /></div>
-      <div class="field"><label>leftSideBearing</label><input id="editLsb" type="number" value="0" /></div>
-      <div class="field"><label>Outline JSON</label><textarea id="editOutline">{"contours":[[{"type":"M","values":[0,0]},{"type":"L","values":[500,700]},{"type":"L","values":[1000,0]},{"type":"Z","values":[]}]]}</textarea></div>
+      <div class="field"><label>glyphId</label><input id="editGlyphId" value="${htmlEscape(selectedGlyph?.id ?? "A")}" /></div>
+      <div class="field"><label>Unicode code point</label><input id="editCodePoint" type="number" value="${selectedGlyph?.unicodeCodePoint ?? 65}" /></div>
+      <div class="field"><label>advanceWidth</label><input id="editAdvance" type="number" value="${selectedGlyph?.metrics.advanceWidth ?? 600}" /></div>
+      <div class="field"><label>leftSideBearing</label><input id="editLsb" type="number" value="${selectedGlyph?.metrics.leftSideBearing ?? 0}" /></div>
+      <div class="field"><label>Outline JSON</label><textarea id="editOutline">${htmlEscape(JSON.stringify(selectedGlyph?.outline ?? { contours: [] }))}</textarea></div>
     </div>
     <div class="actions">
       <button class="secondary" id="assignUnicodeBtn">Asignar Unicode</button>
@@ -216,12 +315,16 @@ function renderExportacionTtf(app: FontDesignApp): string {
   </div>`;
 }
 
-function renderGuardarAbrirProyecto(): string {
+function renderGuardarAbrirProyecto(state: AppState): string {
   return `
   <div class="panel">
     <h2>GuardarAbrirProyecto</h2>
+    <small>${state.linkedProjectSupported
+      ? (state.linkedProjectFilename ? `Archivo vinculado: ${htmlEscape(state.linkedProjectFilename)}` : "Sin archivo vinculado (opcional para autosave a disco).")
+      : "Archivo vinculado no soportado por este navegador."}</small>
     <div class="field"><label>Filename</label><input id="snapshotFilename" value="proyecto-tipografia.json" /></div>
     <div class="actions">
+      <button class="secondary" id="linkSnapshotBtn" ${state.linkedProjectSupported ? "" : "disabled"}>Vincular archivo</button>
       <button class="primary" id="saveProjectBtn">Guardar snapshot</button>
       <button class="secondary" id="openSnapshotBtn">Abrir snapshot</button>
     </div>
@@ -244,10 +347,10 @@ function renderMainPanel(app: FontDesignApp, state: AppState): string {
   if (state.route === "PlantillaSvg") return renderPlantillaSvg();
   if (state.route === "ImportacionSvg") return renderImportacionSvg(state);
   if (state.route === "PrevisualizacionImportacion") return renderPrevisualizacionImportacion(app, state);
-  if (state.route === "EditorGlifos") return renderEditorGlifos();
+  if (state.route === "EditorGlifos") return renderEditorGlifos(app, state);
   if (state.route === "ValidacionExportacion") return renderValidacionExportacion(app);
   if (state.route === "ExportacionTtf") return renderExportacionTtf(app);
-  if (state.route === "GuardarAbrirProyecto") return renderGuardarAbrirProyecto();
+  if (state.route === "GuardarAbrirProyecto") return renderGuardarAbrirProyecto(state);
   return renderPanelErrores(app);
 }
 

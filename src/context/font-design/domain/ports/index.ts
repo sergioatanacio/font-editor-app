@@ -136,6 +136,10 @@ export interface ProjectSerializer {
 export interface FileSystemGateway {
   saveFile(filename: string, content: Blob | Uint8Array | string): Promise<void>;
   pickFile(accept: string[]): Promise<{ name: string; content: string } | null>;
+  supportsLinkedFile?(): boolean;
+  linkFile?(suggestedName: string): Promise<{ filename: string } | null>;
+  saveLinkedFile?(content: Blob | Uint8Array | string): Promise<{ filename: string } | null>;
+  getLinkedFilename?(): string | null;
 }
 
 export interface Clock {

@@ -24,6 +24,19 @@ export function createInitialState(): AppState {
     previewSelection: "all",
     importFilename: "template-editado.svg",
     importSvgContent: '<svg xmlns="http://www.w3.org/2000/svg"></svg>',
+    specimenText: "ABCD",
+    selectedRunIndex: 0,
+    selectedGlyphId: "",
+    editMoveX: 0,
+    editMoveY: 0,
+    editScale: 1,
+    glyphLoadVersion: 0,
+    autosaveDirty: false,
+    autosaveSaving: false,
+    autosaveLastSavedAt: "",
+    autosaveError: "",
+    linkedProjectFilename: "",
+    linkedProjectSupported: false,
   };
 }
 

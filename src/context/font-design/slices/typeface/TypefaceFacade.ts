@@ -1,15 +1,21 @@
 import {
   AssignUnicodeToGlyphUseCase
 } from "./AssignUnicodeToGlyphUseCase";
+import { GetTypefaceSnapshotUseCase } from "./GetTypefaceSnapshotUseCase";
 import { ReplaceGlyphOutlineUseCase } from "./ReplaceGlyphOutlineUseCase";
 import { UpdateGlyphMetricsUseCase } from "./UpdateGlyphMetricsUseCase";
 
 export class TypefaceFacade {
   constructor(
+    private readonly getTypefaceSnapshotUseCase: GetTypefaceSnapshotUseCase,
     private readonly assignUnicodeUseCase: AssignUnicodeToGlyphUseCase,
     private readonly replaceGlyphOutlineUseCase: ReplaceGlyphOutlineUseCase,
     private readonly updateGlyphMetricsUseCase: UpdateGlyphMetricsUseCase,
   ) {}
+
+  async getTypefaceSnapshot(input: { projectId: string }) {
+    return this.getTypefaceSnapshotUseCase.execute(input);
+  }
 
   async assignUnicode(input: { projectId: string; glyphId: string; codePoint: number }) {
     return this.assignUnicodeUseCase.execute(input);

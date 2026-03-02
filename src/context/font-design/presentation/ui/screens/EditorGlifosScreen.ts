@@ -1,10 +1,12 @@
 import { errorState, idleState, loadingState, successState, type ViewState } from "../state/ViewState";
 import type { TypefaceFacade } from "../../../slices";
+import type { TypefaceSnapshot } from "../../../domain/ports";
 
 export interface EditorGlifosData {
   note: string;
   lastOperation?: string;
   updatedAt?: string;
+  typeface?: TypefaceSnapshot;
 }
 
 export class EditorGlifosScreen {
@@ -15,6 +17,30 @@ export class EditorGlifosScreen {
   constructor(private readonly typefaceFacade: TypefaceFacade) {}
 
   getState(): ViewState<EditorGlifosData> {
+    return this.viewState;
+  }
+
+  async loadTypeface(projectId: string) {
+    this.viewState = loadingState(this.viewState.data);
+    const result = await this.typefaceFacade.getTypefaceSnapshot({ projectId });
+
+    if (!result.ok) {
+      this.viewState = errorState(
+        {
+          code: result.error.code,
+          message: result.error.message,
+          recoverable: result.error.recoverable,
+        },
+        this.viewState.data,
+      );
+      return this.viewState;
+    }
+
+    this.viewState = successState({
+      note: this.viewState.data?.note ?? "",
+      typeface: result.value.typeface,
+      updatedAt: result.value.updatedAt,
+    });
     return this.viewState;
   }
 
@@ -38,6 +64,7 @@ export class EditorGlifosScreen {
       note: this.viewState.data?.note ?? "",
       lastOperation: `Unicode ${result.value.codePoint} asignado a ${result.value.glyphId}`,
       updatedAt: result.value.updatedAt,
+      typeface: this.viewState.data?.typeface,
     });
 
     return this.viewState;
@@ -67,6 +94,7 @@ export class EditorGlifosScreen {
       note: this.viewState.data?.note ?? "",
       lastOperation: `Outline reemplazado para ${result.value.glyphId}`,
       updatedAt: result.value.updatedAt,
+      typeface: this.viewState.data?.typeface,
     });
 
     return this.viewState;
@@ -92,6 +120,7 @@ export class EditorGlifosScreen {
       note: this.viewState.data?.note ?? "",
       lastOperation: `Metricas actualizadas para ${result.value.glyphId}`,
       updatedAt: result.value.updatedAt,
+      typeface: this.viewState.data?.typeface,
     });
 
     return this.viewState;
