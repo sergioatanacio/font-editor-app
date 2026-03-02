@@ -618,7 +618,7 @@ export class SvgGlyphVectorImporterAdapter implements GlyphVectorImporter {
 
     }
 
-    const allPaths = Array.from(root.querySelectorAll("path"));
+    const allPaths = Array.from(doc.querySelectorAll("path"));
     for (const pathElement of allPaths) {
       if (pathElement.closest("g[data-role='guides']") || pathElement.closest("g[data-role='label']")) {
         continue;
