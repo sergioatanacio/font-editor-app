@@ -4,6 +4,22 @@ import type { FontDesignApp } from "../context/font-design/main";
 export type StatusKind = "success" | "error" | "warning";
 export type PreviewSelection = "all" | "ok" | "warning" | "error" | "empty";
 
+export interface GlyphEditHistoryItem {
+  glyphId: string;
+  before: {
+    metrics: { advanceWidth: number; leftSideBearing: number };
+    outline: {
+      contours: Array<Array<{ type: "M" | "L" | "Q" | "C" | "Z"; values: number[] }>>;
+    };
+  };
+  after: {
+    metrics: { advanceWidth: number; leftSideBearing: number };
+    outline: {
+      contours: Array<Array<{ type: "M" | "L" | "Q" | "C" | "Z"; values: number[] }>>;
+    };
+  };
+}
+
 export interface AppState {
   route: UiRoute;
   projectId: string;
@@ -26,6 +42,15 @@ export interface AppState {
   autosaveError: string;
   linkedProjectFilename: string;
   linkedProjectSupported: boolean;
+  snapBaseline: boolean;
+  snapGrid: boolean;
+  snapGridSize: number;
+  historyUndo: GlyphEditHistoryItem[];
+  historyRedo: GlyphEditHistoryItem[];
+  historyCanUndo: boolean;
+  historyCanRedo: boolean;
+  historyDepth: number;
+  activeHandle: "none" | "move" | "scale";
 }
 
 export interface UiContext {
