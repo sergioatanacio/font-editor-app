@@ -102,6 +102,8 @@ export class SvgTemplateExporterAdapter implements TemplateExporter {
         const yDescender = fontToCellY(input.metrics.descender);
         const xStart = fontToCellX(0);
         const xAdvance = clamp(fontToCellX(defaultAdvanceWidth), innerX, innerX + innerWidth);
+        const xCenterRaw = round2(innerX + (innerWidth / 2));
+        const xCenter = Math.abs(xCenterRaw - xAdvance) < 1 ? round2(xCenterRaw + 2) : xCenterRaw;
         const label = slot.codePoint == null
           ? slot.glyphName
           : `${slot.glyphName} (U+${slot.codePoint.toString(16).toUpperCase().padStart(4, "0")})`;
@@ -116,8 +118,9 @@ export class SvgTemplateExporterAdapter implements TemplateExporter {
           `        <line data-role=\"guide\" data-guide=\"x-height\" x1=\"${innerX}\" y1=\"${yXHeight}\" x2=\"${innerX + innerWidth}\" y2=\"${yXHeight}\" stroke=\"#86A8C6\" stroke-width=\"0.6\" stroke-dasharray=\"2 2\"/>`,
           `        <line data-role=\"guide\" data-guide=\"baseline\" x1=\"${innerX}\" y1=\"${yBaseline}\" x2=\"${innerX + innerWidth}\" y2=\"${yBaseline}\" stroke=\"#2F8F6A\" stroke-width=\"0.9\"/>`,
           `        <line data-role=\"guide\" data-guide=\"descender\" x1=\"${innerX}\" y1=\"${yDescender}\" x2=\"${innerX + innerWidth}\" y2=\"${yDescender}\" stroke=\"#A2A2A2\" stroke-width=\"0.6\"/>`,
-          `        <line data-role=\"guide\" data-guide=\"lsb\" x1=\"${xStart}\" y1=\"${innerY}\" x2=\"${xStart}\" y2=\"${innerY + innerHeight}\" stroke=\"#5D7A99\" stroke-width=\"0.6\"/>`,
-          `        <line data-role=\"guide\" data-guide=\"advance\" x1=\"${xAdvance}\" y1=\"${innerY}\" x2=\"${xAdvance}\" y2=\"${innerY + innerHeight}\" stroke=\"#5D7A99\" stroke-width=\"0.6\" stroke-dasharray=\"2 2\"/>`,
+          `        <line data-role=\"guide\" data-guide=\"lsb\" x1=\"${xStart}\" y1=\"${innerY}\" x2=\"${xStart}\" y2=\"${innerY + innerHeight}\" stroke=\"#3F6B93\" stroke-width=\"0.7\"/>`,
+          `        <line data-role=\"guide\" data-guide=\"center\" x1=\"${xCenter}\" y1=\"${innerY}\" x2=\"${xCenter}\" y2=\"${innerY + innerHeight}\" stroke=\"#AEB9C6\" stroke-width=\"0.5\" stroke-dasharray=\"2 3\"/>`,
+          `        <line data-role=\"guide\" data-guide=\"advance\" x1=\"${xAdvance}\" y1=\"${innerY}\" x2=\"${xAdvance}\" y2=\"${innerY + innerHeight}\" stroke=\"#3F6B93\" stroke-width=\"0.7\" stroke-dasharray=\"3 2\"/>`,
           "      </g>",
           "      <g data-role=\"drawing\"></g>",
           "      <g data-role=\"label\">",
