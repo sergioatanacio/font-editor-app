@@ -18,10 +18,14 @@ Se requiere editar glifos desde una vista de texto (specimen), seleccionando un 
 6. Sin kerning, ligaduras ni shaping complejo en v1.
 7. Autosave con debounce (500ms) para transformaciones del editor.
 8. Antes de navegar/exportar se hace `flush` de cambios pendientes.
+9. `Undo/Redo` se registra por accion finalizada (no por cada `pointermove`).
+10. `snapBaseline` y `snapGrid` son opcionales y configurables en la UI.
+11. `Shift` durante drag desactiva snap temporalmente.
+12. Handles v1: `move` (centro bbox) y `scale` uniforme (esquina superior derecha).
+13. Limites de escala v1: `[0.1, 8.0]`.
 
 ## Consecuencias
 
 1. El preview refleja estado real exportable.
 2. La semantica es simple y determinista para v1.
 3. Habra diferencias frente a tipografia avanzada por ausencia de shaping.
-

@@ -37,6 +37,15 @@ export function createInitialState(): AppState {
     autosaveError: "",
     linkedProjectFilename: "",
     linkedProjectSupported: false,
+    snapBaseline: true,
+    snapGrid: false,
+    snapGridSize: 10,
+    historyUndo: [],
+    historyRedo: [],
+    historyCanUndo: false,
+    historyCanRedo: false,
+    historyDepth: 0,
+    activeHandle: "none",
   };
 }
 

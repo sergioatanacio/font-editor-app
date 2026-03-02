@@ -4,6 +4,9 @@ import { htmlEscape } from "./utils";
 import { applyTransformToOutline } from "./outlineTransform";
 import { outlineBounds } from "./specimen";
 import type { GlyphOutlineSnapshot, GlyphSnapshot } from "../context/font-design/domain/ports";
+import { pushHistory, redoHistory, undoHistory } from "./history";
+import { snapScale, snapValue } from "./snap";
+import type { GlyphEditHistoryItem } from "./types";
 
 let pendingEditorSave: ReturnType<typeof setTimeout> | null = null;
 
@@ -19,10 +22,25 @@ function parseNumberInput(id: string, fallback: number): number {
   return parsed;
 }
 
+function cloneOutlineMutable(outline: GlyphOutlineSnapshot): { contours: Array<Array<{ type: "M" | "L" | "Q" | "C" | "Z"; values: number[] }>> } {
+  return {
+    contours: outline.contours.map((contour) =>
+      contour.map((command) => ({ type: command.type, values: [...command.values] })),
+    ),
+  };
+}
+
+function syncHistoryFlags(state: UiContext["state"]): void {
+  state.historyCanUndo = state.historyUndo.length > 0;
+  state.historyCanRedo = state.historyRedo.length > 0;
+  state.historyDepth = state.historyUndo.length;
+}
+
 export function mountActions(ctx: UiContext): void {
   const { app, state, clearStatus, setStatus, ensureProjectId, render } = ctx;
   state.linkedProjectSupported = app.facades.project.supportsLinkedProjectFile();
   state.linkedProjectFilename = app.facades.project.getLinkedProjectFilename() ?? state.linkedProjectFilename;
+  syncHistoryFlags(state);
 
   const downloadDiagnostic = (label: string, payload: unknown): void => {
     const json = JSON.stringify(payload, null, 2);
@@ -35,7 +53,41 @@ export function mountActions(ctx: UiContext): void {
     URL.revokeObjectURL(a.href);
   };
 
-  const applyGlyphTransform = async () => {
+  const persistGlyphState = async (
+    pid: string,
+    glyphId: string,
+    metrics: { advanceWidth: number; leftSideBearing: number },
+    outline: { contours: Array<Array<{ type: "M" | "L" | "Q" | "C" | "Z"; values: number[] }>> },
+  ): Promise<boolean> => {
+    const metricsVm = await app.ui.screens.editorGlifos.updateGlyphMetrics({
+      projectId: pid,
+      glyphId,
+      advanceWidth: metrics.advanceWidth,
+      leftSideBearing: metrics.leftSideBearing,
+    });
+    if (metricsVm.status !== "success" && metricsVm.error) {
+      state.autosaveSaving = false;
+      state.autosaveError = metricsVm.error.message;
+      setStatus("error", `${metricsVm.error.code}: ${metricsVm.error.message}`);
+      render();
+      return false;
+    }
+    const outlineVm = await app.ui.screens.editorGlifos.replaceOutline({
+      projectId: pid,
+      glyphId,
+      outline,
+    });
+    if (outlineVm.status !== "success" && outlineVm.error) {
+      state.autosaveSaving = false;
+      state.autosaveError = outlineVm.error.message;
+      setStatus("error", `${outlineVm.error.code}: ${outlineVm.error.message}`);
+      render();
+      return false;
+    }
+    return true;
+  };
+
+  const applyGlyphTransform = async (opts?: { pushToHistory?: boolean }) => {
     const pid = ensureProjectId(); if (!pid) return;
     const model = app.ui.screens.editorGlifos.getState().data?.typeface;
     if (!model || model.glyphs.length === 0) return;
@@ -54,52 +106,41 @@ export function mountActions(ctx: UiContext): void {
     const bounds = outlineBounds(glyph.outline);
     const pivotX = bounds ? (bounds.xMin + bounds.xMax) * 0.5 : 0;
     const pivotY = bounds ? (bounds.yMin + bounds.yMax) * 0.5 : 0;
+    const beforeOutline = cloneOutlineMutable(glyph.outline);
+    const beforeMetrics = {
+      advanceWidth: glyph.metrics.advanceWidth,
+      leftSideBearing: glyph.metrics.leftSideBearing,
+    };
 
     state.autosaveSaving = true;
     state.autosaveDirty = false;
     state.autosaveError = "";
     render();
 
-    if (Math.abs(moveX) > 1e-6) {
-      const metricsVm = await app.ui.screens.editorGlifos.updateGlyphMetrics({
-        projectId: pid,
-        glyphId: glyph.id,
-        advanceWidth: glyph.metrics.advanceWidth,
-        leftSideBearing: glyph.metrics.leftSideBearing + moveX,
-      });
-      if (metricsVm.status !== "success" && metricsVm.error) {
-        state.autosaveSaving = false;
-        state.autosaveError = metricsVm.error.message;
-        setStatus("error", `${metricsVm.error.code}: ${metricsVm.error.message}`);
-        render();
-        return;
-      }
+    const afterMetrics = {
+      advanceWidth: glyph.metrics.advanceWidth,
+      leftSideBearing: glyph.metrics.leftSideBearing + moveX,
+    };
+    const transformedOutline: GlyphOutlineSnapshot = applyTransformToOutline(
+      glyph.outline,
+      { moveX: 0, moveY, scale },
+      pivotX,
+      pivotY,
+    );
+    const afterOutline = cloneOutlineMutable(transformedOutline);
+
+    const changed = JSON.stringify(beforeMetrics) !== JSON.stringify(afterMetrics)
+      || JSON.stringify(beforeOutline) !== JSON.stringify(afterOutline);
+    if (!changed) {
+      state.autosaveSaving = false;
+      state.autosaveDirty = false;
+      render();
+      return;
     }
 
-    if (Math.abs(moveY) > 1e-6 || Math.abs(scale - 1) > 1e-6) {
-      const transformedOutline: GlyphOutlineSnapshot = applyTransformToOutline(
-        glyph.outline,
-        { moveX: 0, moveY, scale },
-        pivotX,
-        pivotY,
-      );
-      const outline = {
-        contours: transformedOutline.contours.map((contour) =>
-          contour.map((command) => ({ type: command.type, values: [...command.values] })),
-        ),
-      };
-      const outlineVm = await app.ui.screens.editorGlifos.replaceOutline({
-        projectId: pid,
-        glyphId: glyph.id,
-        outline,
-      });
-      if (outlineVm.status !== "success" && outlineVm.error) {
-        state.autosaveSaving = false;
-        state.autosaveError = outlineVm.error.message;
-        setStatus("error", `${outlineVm.error.code}: ${outlineVm.error.message}`);
-        render();
-        return;
-      }
+    const persisted = await persistGlyphState(pid, glyph.id, afterMetrics, afterOutline);
+    if (!persisted) {
+      return;
     }
 
     await app.ui.screens.editorGlifos.loadTypeface(pid);
@@ -119,6 +160,17 @@ export function mountActions(ctx: UiContext): void {
     state.editMoveX = 0;
     state.editMoveY = 0;
     state.editScale = 1;
+    if (opts?.pushToHistory !== false) {
+      const item: GlyphEditHistoryItem = {
+        glyphId: glyph.id,
+        before: { metrics: beforeMetrics, outline: beforeOutline },
+        after: { metrics: afterMetrics, outline: afterOutline },
+      };
+      const hist = pushHistory({ undo: state.historyUndo, redo: state.historyRedo }, item);
+      state.historyUndo = hist.undo;
+      state.historyRedo = hist.redo;
+      syncHistoryFlags(state);
+    }
     setStatus("success", `Transformacion aplicada a ${glyph.id}.`);
     render();
   };
@@ -149,11 +201,76 @@ export function mountActions(ctx: UiContext): void {
     render();
   };
 
+  const applyHistoryEntry = async (entry: GlyphEditHistoryItem, direction: "undo" | "redo") => {
+    const pid = ensureProjectId(); if (!pid) return;
+    const target = direction === "undo" ? entry.before : entry.after;
+    state.autosaveSaving = true;
+    state.autosaveError = "";
+    render();
+    const ok = await persistGlyphState(pid, entry.glyphId, target.metrics, target.outline);
+    if (!ok) return;
+    await app.ui.screens.editorGlifos.loadTypeface(pid);
+    if (state.linkedProjectFilename) {
+      await app.facades.project.saveProjectToLinkedFile(pid);
+    }
+    state.autosaveSaving = false;
+    state.autosaveDirty = false;
+    state.autosaveLastSavedAt = new Date().toLocaleTimeString();
+    state.editMoveX = 0;
+    state.editMoveY = 0;
+    state.editScale = 1;
+    render();
+  };
+
+  const runUndo = async () => {
+    if (pendingEditorSave) {
+      clearTimeout(pendingEditorSave);
+      pendingEditorSave = null;
+    }
+    const result = undoHistory({ undo: state.historyUndo, redo: state.historyRedo });
+    if (!result.item) return;
+    state.historyUndo = result.next.undo;
+    state.historyRedo = result.next.redo;
+    syncHistoryFlags(state);
+    await applyHistoryEntry(result.item, "undo");
+    setStatus("success", "Undo aplicado.");
+    render();
+  };
+
+  const runRedo = async () => {
+    if (pendingEditorSave) {
+      clearTimeout(pendingEditorSave);
+      pendingEditorSave = null;
+    }
+    const result = redoHistory({ undo: state.historyUndo, redo: state.historyRedo });
+    if (!result.item) return;
+    state.historyUndo = result.next.undo;
+    state.historyRedo = result.next.redo;
+    syncHistoryFlags(state);
+    await applyHistoryEntry(result.item, "redo");
+    setStatus("success", "Redo aplicado.");
+    render();
+  };
+
   window.onbeforeunload = () => {
     if (state.autosaveDirty || state.autosaveSaving || pendingEditorSave) {
       return "Hay cambios de glifos pendientes de guardar.";
     }
     return null;
+  };
+  window.onkeydown = async (ev: KeyboardEvent) => {
+    const key = ev.key.toLowerCase();
+    const ctrlOrMeta = ev.ctrlKey || ev.metaKey;
+    if (!ctrlOrMeta) return;
+    if (key === "z" && !ev.shiftKey) {
+      ev.preventDefault();
+      await runUndo();
+      return;
+    }
+    if ((key === "z" && ev.shiftKey) || key === "y") {
+      ev.preventDefault();
+      await runRedo();
+    }
   };
 
   document.querySelectorAll<HTMLButtonElement>(".nav-btn").forEach((btn) => {
@@ -411,6 +528,45 @@ export function mountActions(ctx: UiContext): void {
     };
   }
 
+  const undoGlyphEditBtn = document.getElementById("undoGlyphEditBtn") as HTMLButtonElement | null;
+  if (undoGlyphEditBtn) {
+    undoGlyphEditBtn.onclick = async () => {
+      await runUndo();
+    };
+  }
+
+  const redoGlyphEditBtn = document.getElementById("redoGlyphEditBtn") as HTMLButtonElement | null;
+  if (redoGlyphEditBtn) {
+    redoGlyphEditBtn.onclick = async () => {
+      await runRedo();
+    };
+  }
+
+  const snapBaselineToggle = document.getElementById("snapBaselineToggle") as HTMLInputElement | null;
+  if (snapBaselineToggle) {
+    snapBaselineToggle.onchange = () => {
+      state.snapBaseline = snapBaselineToggle.checked;
+      render();
+    };
+  }
+
+  const snapGridToggle = document.getElementById("snapGridToggle") as HTMLInputElement | null;
+  if (snapGridToggle) {
+    snapGridToggle.onchange = () => {
+      state.snapGrid = snapGridToggle.checked;
+      render();
+    };
+  }
+
+  const snapGridSize = document.getElementById("snapGridSize") as HTMLInputElement | null;
+  if (snapGridSize) {
+    snapGridSize.onchange = () => {
+      const next = Math.round(parseNumberInput("snapGridSize", 10));
+      state.snapGridSize = Math.max(1, Math.min(200, next));
+      render();
+    };
+  }
+
   const specimenTextInput = document.getElementById("specimenTextInput") as HTMLInputElement | null;
   if (specimenTextInput) {
     specimenTextInput.oninput = () => {
@@ -432,21 +588,26 @@ export function mountActions(ctx: UiContext): void {
 
   const specimenCanvas = document.getElementById("specimenCanvas") as SVGSVGElement | null;
   if (specimenCanvas) {
-    let drag: { pointerId: number; startX: number; startY: number; baseX: number; baseY: number } | null = null;
+    let drag: { pointerId: number; startX: number; startY: number; baseX: number; baseY: number; baseScale: number; handle: "move" | "scale" } | null = null;
 
     specimenCanvas.onpointerdown = (event) => {
       const target = event.target as Element | null;
       const group = target?.closest("g[data-run-index]") as SVGGElement | null;
       if (!group) return;
+      const handleEl = target?.closest("[data-handle]") as HTMLElement | null;
+      const handle = (handleEl?.dataset.handle === "scale" ? "scale" : "move") as "move" | "scale";
       const runIndex = Number(group.dataset.runIndex ?? "0");
       state.selectedRunIndex = runIndex;
       state.selectedGlyphId = group.dataset.glyphId ?? "";
+      state.activeHandle = handle;
       drag = {
         pointerId: event.pointerId,
         startX: event.clientX,
         startY: event.clientY,
         baseX: state.editMoveX,
         baseY: state.editMoveY,
+        baseScale: state.editScale,
+        handle,
       };
       specimenCanvas.setPointerCapture(event.pointerId);
       render();
@@ -456,8 +617,23 @@ export function mountActions(ctx: UiContext): void {
       if (!drag || drag.pointerId !== event.pointerId) return;
       const dx = event.clientX - drag.startX;
       const dy = event.clientY - drag.startY;
-      state.editMoveX = Math.round(drag.baseX + dx);
-      state.editMoveY = Math.round(drag.baseY - dy);
+      const snapDisabled = event.shiftKey;
+      if (drag.handle === "scale") {
+        const scaleDelta = 1 + (dx - dy) / 300;
+        const rawScale = drag.baseScale * scaleDelta;
+        state.editScale = snapScale(rawScale);
+      } else {
+        const rawX = Math.round(drag.baseX + dx);
+        const rawY = Math.round(drag.baseY - dy);
+        const snapConfig = {
+          baseline: !snapDisabled && state.snapBaseline,
+          grid: !snapDisabled && state.snapGrid,
+          gridSize: state.snapGridSize,
+          baselineTolerance: 12,
+        };
+        state.editMoveX = snapValue(rawX, snapConfig);
+        state.editMoveY = snapValue(rawY, snapConfig);
+      }
       state.autosaveDirty = true;
       render();
     };
@@ -465,18 +641,25 @@ export function mountActions(ctx: UiContext): void {
     specimenCanvas.onpointerup = (event) => {
       if (!drag || drag.pointerId !== event.pointerId) return;
       drag = null;
+      state.activeHandle = "none";
       scheduleGlyphTransform();
     };
 
     specimenCanvas.onpointercancel = () => {
       drag = null;
+      state.activeHandle = "none";
     };
   }
 
   const glyphMoveX = document.getElementById("glyphMoveX") as HTMLInputElement | null;
   if (glyphMoveX) {
     glyphMoveX.oninput = () => {
-      state.editMoveX = parseNumberInput("glyphMoveX", 0);
+      state.editMoveX = snapValue(parseNumberInput("glyphMoveX", 0), {
+        baseline: state.snapBaseline,
+        grid: state.snapGrid,
+        gridSize: state.snapGridSize,
+        baselineTolerance: 12,
+      });
       scheduleGlyphTransform();
     };
   }
@@ -484,7 +667,12 @@ export function mountActions(ctx: UiContext): void {
   const glyphMoveY = document.getElementById("glyphMoveY") as HTMLInputElement | null;
   if (glyphMoveY) {
     glyphMoveY.oninput = () => {
-      state.editMoveY = parseNumberInput("glyphMoveY", 0);
+      state.editMoveY = snapValue(parseNumberInput("glyphMoveY", 0), {
+        baseline: state.snapBaseline,
+        grid: state.snapGrid,
+        gridSize: state.snapGridSize,
+        baselineTolerance: 12,
+      });
       scheduleGlyphTransform();
     };
   }
@@ -493,7 +681,7 @@ export function mountActions(ctx: UiContext): void {
   if (glyphScale) {
     glyphScale.oninput = () => {
       const scale = parseNumberInput("glyphScale", 1);
-      state.editScale = Math.max(0.1, scale);
+      state.editScale = snapScale(scale);
       scheduleGlyphTransform();
     };
   }

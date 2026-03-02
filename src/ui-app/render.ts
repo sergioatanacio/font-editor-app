@@ -225,10 +225,18 @@ function renderEditorGlifos(app: FontDesignApp, state: AppState): string {
     const transformedOutline = isSelected
       ? applyTransformToOutline(item.outline, { moveX: state.editMoveX, moveY: state.editMoveY, scale: state.editScale }, pivotX, pivotY)
       : item.outline;
+    const transformedBounds = isSelected ? outlineBounds(transformedOutline) : null;
     const d = buildPathDataRaw(transformedOutline);
     if (!d) return "";
     const css = isSelected ? "specimen-glyph selected" : "specimen-glyph";
-    return `<g class="${css}" data-run-index="${index}" data-glyph-id="${htmlEscape(item.glyphId)}" transform="translate(${item.x},${item.baselineY}) scale(1,-1)"><path d="${htmlEscape(d)}"/></g>`;
+    const handles = isSelected && transformedBounds
+      ? `
+        <rect class="glyph-box" x="${transformedBounds.xMin}" y="${transformedBounds.yMin}" width="${Math.max(1, transformedBounds.xMax - transformedBounds.xMin)}" height="${Math.max(1, transformedBounds.yMax - transformedBounds.yMin)}"></rect>
+        <circle class="glyph-handle move" data-handle="move" data-run-index="${index}" cx="${(transformedBounds.xMin + transformedBounds.xMax) * 0.5}" cy="${(transformedBounds.yMin + transformedBounds.yMax) * 0.5}" r="16"></circle>
+        <circle class="glyph-handle scale" data-handle="scale" data-run-index="${index}" cx="${transformedBounds.xMax}" cy="${transformedBounds.yMax}" r="14"></circle>
+      `
+      : "";
+    return `<g class="${css}" data-run-index="${index}" data-glyph-id="${htmlEscape(item.glyphId)}" transform="translate(${item.x},${item.baselineY}) scale(1,-1)"><path d="${htmlEscape(d)}"/>${handles}</g>`;
   }).join("");
 
   return `
@@ -236,6 +244,8 @@ function renderEditorGlifos(app: FontDesignApp, state: AppState): string {
     <h2>EditorGlifos</h2>
     <div class="actions">
       <button class="secondary" id="refreshGlyphEditorBtn">Refrescar glifos</button>
+      <button class="secondary" id="undoGlyphEditBtn" ${state.historyCanUndo ? "" : "disabled"}>Undo</button>
+      <button class="secondary" id="redoGlyphEditBtn" ${state.historyCanRedo ? "" : "disabled"}>Redo</button>
       <span class="autosave-chip ${state.autosaveSaving ? "saving" : state.autosaveError ? "error" : state.autosaveDirty ? "dirty" : "ok"}">
         ${state.autosaveSaving ? "Guardando..." : state.autosaveError ? htmlEscape(`Error: ${state.autosaveError}`) : state.autosaveDirty ? "Cambios pendientes" : state.autosaveLastSavedAt ? htmlEscape(`Guardado ${state.autosaveLastSavedAt}`) : "Sin cambios"}
       </span>
@@ -253,6 +263,10 @@ function renderEditorGlifos(app: FontDesignApp, state: AppState): string {
       <div class="panel mini">
         <strong>Seleccion</strong><br/>
         <small>${selected ? `char='${htmlEscape(selected.char)}' glyph=${htmlEscape(selected.glyphId)} cp=${selected.codePoint}` : "Sin seleccion"}</small>
+        <small>Historial: ${state.historyDepth} acciones</small>
+        <label><input id="snapBaselineToggle" type="checkbox" ${state.snapBaseline ? "checked" : ""}/> Snap baseline</label>
+        <label><input id="snapGridToggle" type="checkbox" ${state.snapGrid ? "checked" : ""}/> Snap grid</label>
+        <div class="field"><label>Grid size</label><input id="snapGridSize" type="number" min="1" max="200" step="1" value="${state.snapGridSize}" /></div>
         <div class="field"><label>Mover X</label><input id="glyphMoveX" type="number" step="1" value="${state.editMoveX}" /></div>
         <div class="field"><label>Mover Y</label><input id="glyphMoveY" type="number" step="1" value="${state.editMoveY}" /></div>
         <div class="field"><label>Escala</label><input id="glyphScale" type="number" step="0.01" min="0.1" value="${state.editScale}" /></div>
