@@ -18,6 +18,7 @@ function cloneContent(content: Blob | Uint8Array | string): Blob | Uint8Array | 
 export class InMemoryFileSystemGateway implements FileSystemGateway {
   private readonly savedFiles = new Map<string, StoredFile>();
   private pickedFile: { name: string; content: string } | null = null;
+  private linkedFilename = "";
 
   async saveFile(filename: string, content: Blob | Uint8Array | string): Promise<void> {
     this.savedFiles.set(filename, {
@@ -28,6 +29,27 @@ export class InMemoryFileSystemGateway implements FileSystemGateway {
 
   async pickFile(_accept: string[]): Promise<{ name: string; content: string } | null> {
     return this.pickedFile ? { ...this.pickedFile } : null;
+  }
+
+  supportsLinkedFile(): boolean {
+    return true;
+  }
+
+  async linkFile(suggestedName: string): Promise<{ filename: string } | null> {
+    this.linkedFilename = suggestedName;
+    return { filename: this.linkedFilename };
+  }
+
+  async saveLinkedFile(content: Blob | Uint8Array | string): Promise<{ filename: string } | null> {
+    if (!this.linkedFilename) {
+      return null;
+    }
+    await this.saveFile(this.linkedFilename, content);
+    return { filename: this.linkedFilename };
+  }
+
+  getLinkedFilename(): string | null {
+    return this.linkedFilename || null;
   }
 
   setPickedFile(file: { name: string; content: string } | null): void {

@@ -1,0 +1,27 @@
+# ADR 44 - EditorGlifos Specimen y Transformacion Persistente
+
+## Estado
+
+Aprobado v1.
+
+## Contexto
+
+Se requiere editar glifos desde una vista de texto (specimen), seleccionando un caracter renderizado y aplicando mover/escalar con persistencia real en el proyecto.
+
+## Decisiones
+
+1. Un caracter seleccionado edita el glifo global; afecta todas sus ocurrencias.
+2. `MoveX` se persiste en `leftSideBearing` del glifo.
+3. `MoveY` y `Scale` se persisten transformando coordenadas del `outline`.
+4. `Scale` es uniforme en v1.
+5. Pivote de escala: centro del bounding box del glifo.
+6. Sin kerning, ligaduras ni shaping complejo en v1.
+7. Autosave con debounce (500ms) para transformaciones del editor.
+8. Antes de navegar/exportar se hace `flush` de cambios pendientes.
+
+## Consecuencias
+
+1. El preview refleja estado real exportable.
+2. La semantica es simple y determinista para v1.
+3. Habra diferencias frente a tipografia avanzada por ausencia de shaping.
+

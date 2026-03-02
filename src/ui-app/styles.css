@@ -47,6 +47,20 @@ button.secondary { background: #fff; border-color: var(--line); color: var(--ink
 .glyph-thumb { height: 78px; border: 1px dashed #d9d3c6; border-radius: 8px; margin-bottom: 0.45rem; display: flex; align-items: center; justify-content: center; color: #b8bec7; background: #faf9f5; overflow: hidden; }
 .glyph-thumb svg { width: 100%; height: 100%; color: #c2c7cf; }
 .glyph-thumb.empty { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em; color: #a5adb7; }
+.specimen-layout { display: grid; grid-template-columns: 1fr 290px; gap: 0.8rem; margin-top: 0.7rem; }
+.specimen-canvas-wrap { border: 1px solid var(--line); border-radius: 10px; background: #fff; overflow: auto; max-height: 300px; }
+.specimen-canvas { width: 100%; min-height: 240px; display: block; }
+.specimen-glyph { color: #27323a; cursor: pointer; }
+.specimen-glyph path { fill: currentColor; stroke: none; }
+.specimen-glyph.selected { color: #0c7c59; }
+.specimen-canvas .baseline { stroke: #c5771b; stroke-width: 1; stroke-dasharray: 5 4; opacity: 0.9; }
+.specimen-canvas .metric-line { stroke: #c5cdd3; stroke-width: 1; stroke-dasharray: 4 4; }
+.panel.mini { margin: 0; padding: 0.7rem; }
+.autosave-chip { border: 1px solid var(--line); border-radius: 999px; padding: 0.2rem 0.55rem; font-size: 0.8rem; background: #fff; color: var(--ink-soft); }
+.autosave-chip.ok { border-color: #bde8d8; background: var(--accent-soft); color: var(--accent); }
+.autosave-chip.dirty { border-color: #f7dca3; background: var(--warn-soft); color: var(--warn); }
+.autosave-chip.saving { border-color: #d7d0bf; background: #f4f3ee; color: #5f686f; }
+.autosave-chip.error { border-color: #f2b9b5; background: var(--error-soft); color: var(--error); }
 .alert { border-radius: 10px; padding: 0.7rem; margin-top: 0.75rem; font-size: 0.92rem; }
 .alert.error { background: var(--error-soft); color: var(--error); border: 1px solid #f2b9b5; }
 .alert.success { background: var(--accent-soft); color: var(--accent); border: 1px solid #bde8d8; }
@@ -55,5 +69,6 @@ button.secondary { background: #fff; border-color: var(--line); color: var(--ink
   .app { grid-template-columns: 1fr; }
   .sidebar { position: static; }
   .preview-layout { grid-template-columns: 1fr; }
+  .specimen-layout { grid-template-columns: 1fr; }
   .grid { grid-template-columns: 1fr; }
 }

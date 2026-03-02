@@ -13,6 +13,19 @@ export interface AppState {
   previewSelection: PreviewSelection;
   importFilename: string;
   importSvgContent: string;
+  specimenText: string;
+  selectedRunIndex: number;
+  selectedGlyphId: string;
+  editMoveX: number;
+  editMoveY: number;
+  editScale: number;
+  glyphLoadVersion: number;
+  autosaveDirty: boolean;
+  autosaveSaving: boolean;
+  autosaveLastSavedAt: string;
+  autosaveError: string;
+  linkedProjectFilename: string;
+  linkedProjectSupported: boolean;
 }
 
 export interface UiContext {
