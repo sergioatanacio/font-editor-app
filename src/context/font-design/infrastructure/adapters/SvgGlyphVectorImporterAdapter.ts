@@ -279,12 +279,27 @@ function toDomainContour(
   }
 
   const last = contour[contour.length - 1];
+  const endPoint = (() => {
+    for (let i = contour.length - 1; i >= 0; i -= 1) {
+      const cmd = contour[i];
+      if (cmd.type === "M" || cmd.type === "L") {
+        return { x: cmd.values[0], y: cmd.values[1] };
+      }
+      if (cmd.type === "Q") {
+        return { x: cmd.values[2], y: cmd.values[3] };
+      }
+      if (cmd.type === "C") {
+        return { x: cmd.values[4], y: cmd.values[5] };
+      }
+    }
+    return null;
+  })();
   const isExplicitlyClosed = commands[commands.length - 1]?.type === SVGPathData.CLOSE_PATH || last?.type === "Z";
   const isImplicitlyClosed =
     !!startPoint &&
-    last?.values.length === 2 &&
-    Math.abs(last.values[0] - startPoint.x) < 1e-6 &&
-    Math.abs(last.values[1] - startPoint.y) < 1e-6;
+    !!endPoint &&
+    Math.abs(endPoint.x - startPoint.x) < 1e-3 &&
+    Math.abs(endPoint.y - startPoint.y) < 1e-3;
 
   if (!isExplicitlyClosed) {
     if (isImplicitlyClosed) {
@@ -357,7 +372,6 @@ function normalizePathCommands(pathElement: Element, d: string): any[] {
   const transform = elementTransformChain(pathElement);
   return new SVGPathData(d)
     .transform(SVGPathDataTransformer.TO_ABS())
-    .transform(SVGPathDataTransformer.NORMALIZE_HVZ())
     .transform(SVGPathDataTransformer.NORMALIZE_ST())
     .transform(SVGPathDataTransformer.A_TO_C())
     .transform(SVGPathDataTransformer.MATRIX(transform.a, transform.b, transform.c, transform.d, transform.e, transform.f))

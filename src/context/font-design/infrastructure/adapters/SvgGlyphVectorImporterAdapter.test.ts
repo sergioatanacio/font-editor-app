@@ -68,6 +68,17 @@ describe("SvgGlyphVectorImporterAdapter", () => {
     expect(result.items.flatMap((x) => x.issues).some((i) => i.code === "OPEN_CONTOUR")).toBe(true);
   });
 
+  it("acepta contorno cerrado geometricamente aunque no termine en Z", async () => {
+    const adapter = new SvgGlyphVectorImporterAdapter();
+    const svg = inlineSvg(`<path id="closed-by-endpoint" d="M12 108 L60 12 L108 108 L12 108" />`);
+    const result = await adapter.importFromSvg(svg, { requiredGlyphIds: ["A"] });
+
+    expect(result.isBlocking).toBe(false);
+    const itemA = result.items.find((x) => x.glyphId === "A");
+    expect(itemA?.issues.some((i) => i.code === "OPEN_CONTOUR")).toBe(false);
+    expect(itemA?.outline?.contours.length ?? 0).toBeGreaterThan(0);
+  });
+
   it("asigna por interseccion al glifo con mayor solapamiento", async () => {
     const adapter = new SvgGlyphVectorImporterAdapter();
     const svg = inlineSvg(`<path id="crossing" d="M100 60 L200 60 L200 100 L100 100 Z" />`);
