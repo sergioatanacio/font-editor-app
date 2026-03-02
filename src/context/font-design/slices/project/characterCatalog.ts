@@ -1,2 +1,1 @@
-export { deriveTemplateCharacterPreset } from "../template/characterCatalog";
-
+export { deriveTemplateCharacterPreset, isTemplateCharacterSelectionValid } from "../template/characterCatalog";

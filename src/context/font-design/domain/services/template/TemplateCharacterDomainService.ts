@@ -64,6 +64,10 @@ function dedupeByCodePointOrName(items: CharacterSpec[]): CharacterSpec[] {
 }
 
 export class TemplateCharacterDomainService {
+  isSelectionValid(selection: TemplateCharacterSelection): boolean {
+    return selection.includeLatamAlnum || selection.includeCodeChars;
+  }
+
   derivePreset(selection: TemplateCharacterSelection): TemplateCharacterPreset {
     if (selection.includeLatamAlnum && selection.includeCodeChars) {
       return "latam-plus-code";
@@ -117,4 +121,3 @@ export class TemplateCharacterDomainService {
     ];
   }
 }
-

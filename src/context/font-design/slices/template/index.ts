@@ -1,5 +1,6 @@
 export {
   deriveTemplateCharacterPreset,
+  isTemplateCharacterSelectionValid,
   buildTemplateCharacters,
   requiredGlyphNamesForExportPreset,
   type CharacterSpec,

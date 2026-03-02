@@ -2,7 +2,7 @@ import * as opentype from "opentype.js";
 import type { FontBinaryExporter, ExportIssue } from "../../domain/ports";
 import type { Typeface } from "../../domain/entities/Typeface";
 import type { Glyph } from "../../domain/entities/Glyph";
-import type { PathCommand } from "../../domain/value-objects/GlyphOutline";
+import { TtfExportDomainService } from "../../domain/services";
 
 const CUBIC_TO_QUADRATIC_DRIFT_WARNING = 0.5;
 const CUBIC_TO_QUADRATIC_TOLERANCE = 0.25;
@@ -82,47 +82,16 @@ function glyphName(glyph: Glyph): string {
   return glyph.name.toString();
 }
 
-function orderGlyphs(typeface: Typeface): Glyph[] {
-  const all = Array.from(typeface.glyphs.values());
-  const notdef = all.find((g) => glyphName(g) === ".notdef");
-  const rest = all.filter((g) => g !== notdef);
-  const space = rest.find((g) => glyphName(g) === "space");
-
-  const others = rest.filter((g) => g !== space).sort((a, b) => {
-    const au = a.unicode?.toNumber();
-    const bu = b.unicode?.toNumber();
-
-    if (au != null && bu != null) {
-      return au - bu;
-    }
-    if (au != null) {
-      return -1;
-    }
-    if (bu != null) {
-      return 1;
-    }
-
-    return a.id.toString().localeCompare(b.id.toString());
-  });
-
-  const ordered: Glyph[] = [];
-  if (notdef) {
-    ordered.push(notdef);
-  }
-  if (space) {
-    ordered.push(space);
-  }
-  ordered.push(...others);
-  return ordered;
-}
-
 export class TtfExporterAdapter implements FontBinaryExporter {
+  constructor(private readonly domainService: TtfExportDomainService = new TtfExportDomainService()) {}
+
   async exportTtf(typeface: Typeface): Promise<{ bytes: Uint8Array; warnings: ExportIssue[] }> {
     const warnings: ExportIssue[] = [];
     const fontGlyphs: opentype.Glyph[] = [];
-    const ordered = orderGlyphs(typeface);
+    const plan = this.domainService.createGlyphPlan(typeface);
+    const ordered = plan.orderedGlyphs;
 
-    if (!ordered.some((g) => glyphName(g) === ".notdef")) {
+    if (plan.shouldInjectNotdef) {
       const notdefPath = new opentype.Path();
       fontGlyphs.push(
         new opentype.Glyph({

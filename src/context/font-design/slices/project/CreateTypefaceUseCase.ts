@@ -7,7 +7,7 @@ import { TypefaceId } from "../../domain/value-objects/TypefaceId";
 import { TypefaceMetadata } from "../../domain/value-objects/TypefaceMetadata";
 import { Typeface } from "../../domain/entities/Typeface";
 import { toTypefaceSnapshot } from "./typefaceSnapshotMapper";
-import { deriveTemplateCharacterPreset } from "./characterCatalog";
+import { deriveTemplateCharacterPreset, isTemplateCharacterSelectionValid } from "./characterCatalog";
 
 export interface CreateTypefaceInput {
   projectId?: string;
@@ -70,7 +70,7 @@ export class CreateTypefaceUseCase
       };
     }
 
-    if (!input.templateCharacterSelection.includeLatamAlnum && !input.templateCharacterSelection.includeCodeChars) {
+    if (!isTemplateCharacterSelectionValid(input.templateCharacterSelection)) {
       return {
         ok: false,
         error: asAppError("INVALID_CHARACTER_SELECTION", "Debes activar al menos un conjunto de caracteres."),

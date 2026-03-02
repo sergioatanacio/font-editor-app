@@ -4,6 +4,11 @@ import { TemplateCharacterDomainService } from "./TemplateCharacterDomainService
 describe("TemplateCharacterDomainService", () => {
   const service = new TemplateCharacterDomainService();
 
+  it("valida seleccion de caracteres", () => {
+    expect(service.isSelectionValid({ includeLatamAlnum: false, includeCodeChars: false })).toBe(false);
+    expect(service.isSelectionValid({ includeLatamAlnum: true, includeCodeChars: false })).toBe(true);
+  });
+
   it("deriva preset desde seleccion", () => {
     expect(service.derivePreset({ includeLatamAlnum: true, includeCodeChars: false })).toBe("latam-alnum");
     expect(service.derivePreset({ includeLatamAlnum: false, includeCodeChars: true })).toBe("code-dev");
@@ -18,4 +23,3 @@ describe("TemplateCharacterDomainService", () => {
     expect(chars.some((x) => x.glyphName === "u0020")).toBe(true);
   });
 });
-

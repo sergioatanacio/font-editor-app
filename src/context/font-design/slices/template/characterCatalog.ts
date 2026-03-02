@@ -14,6 +14,10 @@ export function deriveTemplateCharacterPreset(selection: TemplateCharacterSelect
   return service.derivePreset(selection);
 }
 
+export function isTemplateCharacterSelectionValid(selection: TemplateCharacterSelection): boolean {
+  return service.isSelectionValid(selection);
+}
+
 export function buildTemplateCharacters(selection: TemplateCharacterSelection): CharacterSpec[] {
   return service.buildCharacters(selection);
 }
@@ -21,4 +25,3 @@ export function buildTemplateCharacters(selection: TemplateCharacterSelection): 
 export function requiredGlyphNamesForExportPreset(preset: ExportPreset): string[] {
   return service.requiredGlyphNamesForExportPreset(preset);
 }
-
