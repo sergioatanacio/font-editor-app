@@ -35,6 +35,18 @@ describe("SvgTemplateExporterAdapter", () => {
     expect(svg).toContain('data-role="drawing"');
     expect(svg).toContain('data-role="label"');
     expect(svg).toContain('<text x="12" y="10"');
+    expect(svg).toContain('id="ctf-template-legend"');
+    expect(svg).toContain("LEYENDA DE DIBUJO");
+    expect(svg).toContain("baseline: apoyo principal del glifo");
+    expect(svg).toContain('id="ctf-template-legend-samples"');
+    expect(svg).toContain('id="legend-sample-A"');
+    expect(svg).toContain('id="legend-sample-a"');
+    expect(svg).toContain('id="legend-sample-K"');
+    expect(svg).toContain('id="legend-sample-k"');
+    expect(svg).toContain('id="legend-sample-l"');
+    expect(svg).toContain('id="legend-sample-j"');
+    expect(svg).toContain('id="legend-sample-g"');
+    expect(svg).toContain('id="legend-sample-x"');
   });
 
   it("desacopla center de advance cuando quedan casi superpuestos", async () => {
@@ -56,5 +68,23 @@ describe("SvgTemplateExporterAdapter", () => {
     expect(centerMatch?.[1]).toBeTruthy();
     expect(advanceMatch?.[1]).toBeTruthy();
     expect(Number(centerMatch![1])).not.toBe(Number(advanceMatch![1]));
+  });
+
+  it("muestra caracter legible en labels unicode", async () => {
+    const adapter = new SvgTemplateExporterAdapter();
+    const svg = await adapter.exportSvgTemplate({
+      typefaceId: "tf-test",
+      templateCharacterPreset: "latam-alnum",
+      templateCharacterSelection: { includeLatamAlnum: true, includeCodeChars: false },
+      unitsPerEm: 1000,
+      metrics: { ascender: 800, descender: -200 },
+      grid: { cols: 1, rows: 1, cellWidth: 120, cellHeight: 120, padding: 12 },
+      glyphSlots: [
+        { glyphId: "u00D1", glyphName: "u00D1", codePoint: 0x00D1, kind: "base", slotIndex: 0 },
+      ],
+    });
+
+    expect(svg).toContain("Ñ (U+00D1)");
+    expect(svg).not.toContain("u00D1 (U+00D1)");
   });
 });
