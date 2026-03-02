@@ -9,6 +9,7 @@ describe("SvgTemplateExporterAdapter", () => {
       templateCharacterPreset: "latam-alnum",
       templateCharacterSelection: { includeLatamAlnum: true, includeCodeChars: false },
       unitsPerEm: 1000,
+      metrics: { ascender: 800, descender: -200 },
       grid: { cols: 2, rows: 1, cellWidth: 120, cellHeight: 120, padding: 12 },
       glyphSlots: [
         { glyphId: "A", glyphName: "A", codePoint: 65, kind: "base", slotIndex: 0 },
@@ -17,8 +18,16 @@ describe("SvgTemplateExporterAdapter", () => {
     });
 
     expect(svg).toContain('id="ctf-template-root"');
+    expect(svg).toContain('"templateSchemaVersion":"1.1.0"');
     expect(svg).toContain('data-role="guides"');
     expect(svg).toContain('<rect x="0" y="0" width="120" height="120"');
+    expect(svg).toContain('data-guide="baseline"');
+    expect(svg).toContain('data-guide="x-height"');
+    expect(svg).toContain('data-guide="cap-height"');
+    expect(svg).toContain('data-guide="ascender"');
+    expect(svg).toContain('data-guide="descender"');
+    expect(svg).toContain('data-guide="lsb"');
+    expect(svg).toContain('data-guide="advance"');
     expect(svg).toContain('data-role="drawing"');
     expect(svg).toContain('data-role="label"');
     expect(svg).toContain('<text x="12" y="10"');

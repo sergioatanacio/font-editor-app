@@ -23,8 +23,8 @@ function inlineSvg(body: string): string {
       <g data-role="drawing"></g>
       <g data-role="label"></g>
     </g>
+    ${body}
   </g>
-  ${body}
 </svg>`;
 }
 
@@ -68,25 +68,29 @@ describe("SvgGlyphVectorImporterAdapter", () => {
     expect(result.items.flatMap((x) => x.issues).some((i) => i.code === "OPEN_CONTOUR")).toBe(true);
   });
 
-  it("reasigna paths fuera de drawing por posicion de celda", async () => {
+  it("asigna por interseccion al glifo con mayor solapamiento", async () => {
     const adapter = new SvgGlyphVectorImporterAdapter();
-    const svg = inlineSvg(`<path id="outside-a" d="M12 108 L60 12 L108 108 Z" />`);
+    const svg = inlineSvg(`<path id="crossing" d="M100 60 L200 60 L200 100 L100 100 Z" />`);
     const result = await adapter.importFromSvg(svg, { requiredGlyphIds: ["A", "space"] });
 
     expect(result.isBlocking).toBe(false);
     const itemA = result.items.find((x) => x.glyphId === "A");
-    expect(itemA?.outline?.contours.length ?? 0).toBeGreaterThan(0);
-    expect(itemA?.issues.some((x) => x.code === "POSITIONAL_FALLBACK_APPLIED")).toBe(false);
+    const itemSpace = result.items.find((x) => x.glyphId === "space");
+    expect(itemA?.outline?.contours.length ?? 0).toBe(0);
+    expect(itemSpace?.outline?.contours.length ?? 0).toBeGreaterThan(0);
   });
 
-  it("cuando un path queda fuera de todas las celdas lo asigna a la celda mas cercana", async () => {
+  it("ignora paths fuera de celdas y reporta warning global", async () => {
     const adapter = new SvgGlyphVectorImporterAdapter();
     const svg = inlineSvg(`<path id="outside-far" d="M700 108 L740 20 L780 108 Z" />`);
     const result = await adapter.importFromSvg(svg, { requiredGlyphIds: ["A", "space"] });
 
     expect(result.isBlocking).toBe(false);
+    expect(result.preview.length).toBe(2);
+    expect(result.globalIssues.some((i) => i.code === "PATH_OUTSIDE_GLYPH_CELLS")).toBe(true);
+    const itemA = result.items.find((x) => x.glyphId === "A");
     const itemSpace = result.items.find((x) => x.glyphId === "space");
-    expect(itemSpace?.outline?.contours.length ?? 0).toBeGreaterThan(0);
-    expect(itemSpace?.issues.some((x) => x.code === "POSITIONAL_FALLBACK_APPLIED")).toBe(false);
+    expect(itemA?.outline?.contours.length ?? 0).toBe(0);
+    expect(itemSpace?.outline?.contours.length ?? 0).toBe(0);
   });
 });

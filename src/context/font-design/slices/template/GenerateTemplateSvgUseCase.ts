@@ -12,7 +12,7 @@ export interface GenerateTemplateSvgOutput {
   projectId: string;
   svgContent: string;
   mapping: {
-    schemaVersion: "1.0.0";
+    schemaVersion: "1.1.0";
     slotByGlyphId: Record<string, number>;
     requiredGlyphIds: string[];
     optionalGlyphIds: string[];
@@ -59,7 +59,7 @@ export class GenerateTemplateSvgUseCase implements UseCase<GenerateTemplateSvgIn
       .map((slot) => slot.glyphId);
 
     const mapping = {
-      schemaVersion: "1.0.0" as const,
+      schemaVersion: "1.1.0" as const,
       slotByGlyphId: Object.fromEntries(glyphSlots.map((slot) => [slot.glyphId, slot.slotIndex])),
       requiredGlyphIds,
       optionalGlyphIds,
@@ -73,6 +73,10 @@ export class GenerateTemplateSvgUseCase implements UseCase<GenerateTemplateSvgIn
       templateCharacterPreset,
       templateCharacterSelection: project.templateCharacterSelection,
       unitsPerEm: project.typeface.metrics.unitsPerEm,
+      metrics: {
+        ascender: project.typeface.metrics.ascender,
+        descender: project.typeface.metrics.descender,
+      },
       grid: {
         cols,
         rows,
