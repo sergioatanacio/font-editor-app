@@ -90,6 +90,7 @@ export class TtfExporterAdapter implements FontBinaryExporter {
     const fontGlyphs: opentype.Glyph[] = [];
     const plan = this.domainService.createGlyphPlan(typeface);
     const ordered = plan.orderedGlyphs;
+    const letterSpacing = Math.max(-1000, Math.min(1000, Math.round(typeface.metadata.letterSpacing ?? 0)));
 
     if (plan.shouldInjectNotdef) {
       const notdefPath = new opentype.Path();
@@ -162,7 +163,7 @@ export class TtfExporterAdapter implements FontBinaryExporter {
         new opentype.Glyph({
           name: glyphName(glyph),
           unicode: glyph.unicode?.toNumber(),
-          advanceWidth: roundInt(glyph.metrics.advanceWidth),
+          advanceWidth: Math.max(1, roundInt(glyph.metrics.advanceWidth + letterSpacing)),
           path,
         }),
       );

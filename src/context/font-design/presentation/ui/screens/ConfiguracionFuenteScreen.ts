@@ -25,6 +25,7 @@ export class ConfiguracionFuenteScreen {
     styleName: string;
     designer?: string;
     version?: string;
+    letterSpacing?: number;
     unitsPerEm: number;
     ascender: number;
     descender: number;
@@ -38,6 +39,7 @@ export class ConfiguracionFuenteScreen {
       styleName: input.styleName,
       designer: input.designer,
       version: input.version,
+      letterSpacing: input.letterSpacing,
     });
 
     if (!metadata.ok) {

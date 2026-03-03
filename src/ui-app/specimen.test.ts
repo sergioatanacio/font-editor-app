@@ -56,6 +56,17 @@ describe("specimen layout", () => {
     expect(result.items[0]?.glyphId).toBe(".notdef");
   });
 
+  it("aplica interletrado entre glifos", () => {
+    const normal = layoutSpecimen(fixtureTypeface(), "AA", 0);
+    const compact = layoutSpecimen(fixtureTypeface(), "AA", -80);
+    const expanded = layoutSpecimen(fixtureTypeface(), "AA", 120);
+    const normalDelta = (normal.items[1]?.x ?? 0) - (normal.items[0]?.x ?? 0);
+    const compactDelta = (compact.items[1]?.x ?? 0) - (compact.items[0]?.x ?? 0);
+    const expandedDelta = (expanded.items[1]?.x ?? 0) - (expanded.items[0]?.x ?? 0);
+    expect(compactDelta).toBe(normalDelta - 80);
+    expect(expandedDelta).toBe(normalDelta + 120);
+  });
+
   it("calcula bounds del outline", () => {
     const bounds = outlineBounds(TRIANGLE);
     expect(bounds).toEqual({ xMin: 0, yMin: 0, xMax: 200, yMax: 200 });

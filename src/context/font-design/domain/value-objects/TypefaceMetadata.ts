@@ -6,6 +6,7 @@ export interface TypefaceMetadataInput {
   styleName: string;
   designer?: string;
   version?: string;
+  letterSpacing?: number;
 }
 
 export class TypefaceMetadata {
@@ -14,6 +15,7 @@ export class TypefaceMetadata {
     readonly styleName: string,
     readonly designer?: string,
     readonly version?: string,
+    readonly letterSpacing = 0,
   ) {}
 
   static create(input: TypefaceMetadataInput): Result<TypefaceMetadata, DomainError> {
@@ -30,6 +32,18 @@ export class TypefaceMetadata {
       };
     }
 
+    const rawLetterSpacing = input.letterSpacing ?? 0;
+    if (!Number.isFinite(rawLetterSpacing)) {
+      return {
+        ok: false,
+        error: new DomainError({
+          code: "INVALID_TYPEFACE_METADATA",
+          message: "letterSpacing debe ser un numero finito.",
+        }),
+      };
+    }
+    const letterSpacing = Math.max(-1000, Math.min(1000, Math.round(rawLetterSpacing)));
+
     return {
       ok: true,
       value: new TypefaceMetadata(
@@ -37,6 +51,7 @@ export class TypefaceMetadata {
         styleName,
         input.designer?.trim() || undefined,
         input.version?.trim() || undefined,
+        letterSpacing,
       ),
     };
   }

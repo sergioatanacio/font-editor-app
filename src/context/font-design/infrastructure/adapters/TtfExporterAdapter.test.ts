@@ -49,9 +49,16 @@ function buildGlyph(params: {
   );
 }
 
-function buildTypeface(glyphs: Glyph[]): Typeface {
+function buildTypeface(glyphs: Glyph[], options?: { letterSpacing?: number }): Typeface {
   const id = must(TypefaceId.create("tf-golden"));
-  const metadata = must(TypefaceMetadata.create({ familyName: "Golden Sans", styleName: "Regular", version: "1.0" }));
+  const metadata = must(
+    TypefaceMetadata.create({
+      familyName: "Golden Sans",
+      styleName: "Regular",
+      version: "1.0",
+      letterSpacing: options?.letterSpacing,
+    }),
+  );
   const metrics = must(FontMetrics.create({ unitsPerEm: 1000, ascender: 800, descender: -200, lineGap: 200, baseline: 0 }));
   return must(Typeface.create({ id, metadata, metrics, glyphs }));
 }
@@ -133,5 +140,37 @@ describe("TtfExporterAdapter", () => {
     const out = await exporter.exportTtf(tf);
 
     expect(out.warnings.some((w) => w.code === "CURVE_APPROXIMATION_DRIFT")).toBe(true);
+  });
+
+  it("aplica letterSpacing global a los advanceWidth exportados", async () => {
+    const outline = must(
+      GlyphOutline.create([
+        [
+          { type: "M", values: [0, 0] },
+          { type: "L", values: [500, 700] },
+          { type: "L", values: [900, 0] },
+          { type: "Z", values: [] },
+        ],
+      ]),
+    );
+    const tf = buildTypeface([
+      buildGlyph({ id: "g-notdef", name: ".notdef", kind: "base", advanceWidth: 500 }),
+      buildGlyph({ id: "g-A", name: "A", kind: "base", advanceWidth: 700, unicode: 65, outline }),
+    ], { letterSpacing: -120 });
+
+    const exporter = new TtfExporterAdapter();
+    const out = await exporter.exportTtf(tf);
+    const arr = Buffer.from(out.bytes);
+    const parsed = opentype.parse(arr.buffer.slice(arr.byteOffset, arr.byteOffset + arr.byteLength));
+    let glyphA: opentype.Glyph | null = null;
+    for (let i = 0; i < parsed.glyphs.length; i += 1) {
+      const glyph = parsed.glyphs.get(i);
+      if (glyph.name === "A") {
+        glyphA = glyph;
+        break;
+      }
+    }
+
+    expect(glyphA?.advanceWidth).toBe(580);
   });
 });

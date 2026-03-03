@@ -97,6 +97,7 @@ export function toDomainTypeface(snapshot: TypefaceSnapshot): Result<Typeface, A
       styleName: snapshot.metadata.styleName,
       designer: snapshot.metadata.designer,
       version: snapshot.metadata.version,
+      letterSpacing: snapshot.metadata.letterSpacing,
     }),
   );
   if (!metadata.ok) return metadata;
@@ -136,6 +137,7 @@ export function toTypefaceSnapshot(typeface: Typeface): TypefaceSnapshot {
       styleName: typeface.metadata.styleName,
       designer: typeface.metadata.designer,
       version: typeface.metadata.version,
+      letterSpacing: typeface.metadata.letterSpacing,
     },
     metrics: {
       unitsPerEm: typeface.metrics.unitsPerEm,

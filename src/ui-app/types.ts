@@ -30,6 +30,8 @@ export interface AppState {
   importFilename: string;
   importSvgContent: string;
   specimenText: string;
+  specimenLetterSpacing: number;
+  specimenZoomPercent: number;
   selectedRunIndex: number;
   selectedGlyphId: string;
   editMoveX: number;

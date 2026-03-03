@@ -42,7 +42,7 @@ function resolveGlyph(typeface: TypefaceSnapshot, cp: number, unicodeMap: Map<nu
   return unicodeMap.get(cp) ?? fallbackGlyph(typeface);
 }
 
-export function layoutSpecimen(typeface: TypefaceSnapshot, text: string): SpecimenLayout {
+export function layoutSpecimen(typeface: TypefaceSnapshot, text: string, letterSpacing = 0): SpecimenLayout {
   const unicodeMap = glyphByUnicode(typeface);
   const unitsPerEm = typeface.metrics.unitsPerEm;
   const ascender = typeface.metrics.ascender;
@@ -58,7 +58,8 @@ export function layoutSpecimen(typeface: TypefaceSnapshot, text: string): Specim
   let runIndex = 0;
   let maxLineWidth = 0;
 
-  for (const ch of chars) {
+  for (let i = 0; i < chars.length; i += 1) {
+    const ch = chars[i];
     if (ch === "\n") {
       maxLineWidth = Math.max(maxLineWidth, x);
       x = startX;
@@ -79,7 +80,8 @@ export function layoutSpecimen(typeface: TypefaceSnapshot, text: string): Specim
       advanceWidth,
       outline: glyph.outline,
     });
-    x += advanceWidth;
+    const hasNextInSameLine = i + 1 < chars.length && chars[i + 1] !== "\n";
+    x += advanceWidth + (hasNextInSameLine ? letterSpacing : 0);
     runIndex += 1;
   }
 

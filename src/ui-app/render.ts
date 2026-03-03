@@ -210,7 +210,11 @@ function renderEditorGlifos(app: FontDesignApp, state: AppState): string {
     </div>`;
   }
 
-  const layout = layoutSpecimen(typeface, state.specimenText);
+  const layout = layoutSpecimen(typeface, state.specimenText, state.specimenLetterSpacing);
+  const zoomPercent = Math.max(25, Math.min(100, state.specimenZoomPercent));
+  const zoomFactor = zoomPercent / 100;
+  const displayWidth = Math.max(1, Math.round(layout.width * zoomFactor));
+  const displayHeight = Math.max(1, Math.round(layout.height * zoomFactor));
   const selected = layout.items[state.selectedRunIndex] ?? layout.items[0];
   const selectedGlyph = selected ? typeface.glyphs.find((x) => x.id === selected.glyphId) : null;
   const selectedOutline = selectedGlyph?.outline;
@@ -251,9 +255,16 @@ function renderEditorGlifos(app: FontDesignApp, state: AppState): string {
       </span>
     </div>
     <div class="field"><label>Texto de prueba</label><input id="specimenTextInput" value="${htmlEscape(state.specimenText)}" /></div>
+    <div class="field"><label>Interletrado</label><input id="specimenLetterSpacingInput" type="number" step="1" value="${state.specimenLetterSpacing}" /></div>
+    <div class="actions">
+      <button class="secondary" id="zoom100Btn" ${zoomPercent === 100 ? "disabled" : ""}>100%</button>
+      <button class="secondary" id="zoom75Btn" ${zoomPercent === 75 ? "disabled" : ""}>75%</button>
+      <button class="secondary" id="zoom50Btn" ${zoomPercent === 50 ? "disabled" : ""}>50%</button>
+      <button class="secondary" id="zoom25Btn" ${zoomPercent === 25 ? "disabled" : ""}>25%</button>
+    </div>
     <div class="specimen-layout">
       <div class="specimen-canvas-wrap">
-        <svg id="specimenCanvas" class="specimen-canvas" viewBox="0 0 ${layout.width} ${layout.height}" preserveAspectRatio="xMinYMin meet">
+        <svg id="specimenCanvas" class="specimen-canvas" viewBox="0 0 ${layout.width} ${layout.height}" width="${displayWidth}" height="${displayHeight}" style="width:${displayWidth}px;height:${displayHeight}px" preserveAspectRatio="xMinYMin meet">
           <line x1="0" y1="${baseLineY}" x2="${layout.width}" y2="${baseLineY}" class="baseline"/>
           <line x1="0" y1="${baseLineY - layout.ascender}" x2="${layout.width}" y2="${baseLineY - layout.ascender}" class="metric-line"/>
           <line x1="0" y1="${baseLineY - layout.descender}" x2="${layout.width}" y2="${baseLineY - layout.descender}" class="metric-line"/>

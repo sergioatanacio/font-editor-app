@@ -25,6 +25,8 @@ export function createInitialState(): AppState {
     importFilename: "template-editado.svg",
     importSvgContent: '<svg xmlns="http://www.w3.org/2000/svg"></svg>',
     specimenText: "ABCD",
+    specimenLetterSpacing: 0,
+    specimenZoomPercent: 100,
     selectedRunIndex: 0,
     selectedGlyphId: "",
     editMoveX: 0,

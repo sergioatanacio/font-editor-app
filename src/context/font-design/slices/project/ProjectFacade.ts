@@ -34,6 +34,7 @@ export class ProjectFacade {
     styleName: string;
     designer?: string;
     version?: string;
+    letterSpacing?: number;
   }) {
     return this.updateTypefaceMetadataUseCase.execute(input);
   }

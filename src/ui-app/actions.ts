@@ -9,6 +9,7 @@ import { snapScale, snapValue } from "./snap";
 import type { GlyphEditHistoryItem } from "./types";
 
 let pendingEditorSave: ReturnType<typeof setTimeout> | null = null;
+let pendingLetterSpacingSave: ReturnType<typeof setTimeout> | null = null;
 
 function findGlyphById(glyphs: readonly GlyphSnapshot[], glyphId: string): GlyphSnapshot | null {
   return glyphs.find((x) => x.id === glyphId) ?? null;
@@ -51,6 +52,34 @@ export function mountActions(ctx: UiContext): void {
     a.download = `diagnostic-${label}-${ts}.json`;
     a.click();
     URL.revokeObjectURL(a.href);
+  };
+
+  const syncEditorViewSettingsFromTypeface = (): void => {
+    const model = app.ui.screens.editorGlifos.getState().data?.typeface;
+    if (!model) return;
+    state.specimenLetterSpacing = Math.max(-1000, Math.min(1000, Math.round(model.metadata.letterSpacing ?? 0)));
+  };
+
+  const persistLetterSpacing = async (): Promise<void> => {
+    const pid = ensureProjectId(); if (!pid) return;
+    const model = app.ui.screens.editorGlifos.getState().data?.typeface;
+    if (!model) return;
+    const saved = await app.facades.project.updateTypefaceMetadata({
+      projectId: pid,
+      familyName: model.metadata.familyName,
+      styleName: model.metadata.styleName,
+      designer: model.metadata.designer,
+      version: model.metadata.version,
+      letterSpacing: state.specimenLetterSpacing,
+    });
+    if (!saved.ok) {
+      setStatus("error", `${saved.error.code}: ${saved.error.message}`);
+      render();
+      return;
+    }
+    await app.ui.screens.editorGlifos.loadTypeface(pid);
+    syncEditorViewSettingsFromTypeface();
+    syncEditorViewSettingsFromTypeface();
   };
 
   const persistGlyphState = async (
@@ -144,6 +173,7 @@ export function mountActions(ctx: UiContext): void {
     }
 
     await app.ui.screens.editorGlifos.loadTypeface(pid);
+    syncEditorViewSettingsFromTypeface();
     if (state.linkedProjectFilename) {
       const linkedSave = await app.facades.project.saveProjectToLinkedFile(pid);
       if (!linkedSave.ok) {
@@ -176,6 +206,11 @@ export function mountActions(ctx: UiContext): void {
   };
 
   const flushPendingEditorSave = async (): Promise<void> => {
+    if (pendingLetterSpacingSave) {
+      clearTimeout(pendingLetterSpacingSave);
+      pendingLetterSpacingSave = null;
+      await persistLetterSpacing();
+    }
     if (pendingEditorSave) {
       clearTimeout(pendingEditorSave);
       pendingEditorSave = null;
@@ -223,6 +258,11 @@ export function mountActions(ctx: UiContext): void {
   };
 
   const runUndo = async () => {
+    if (pendingLetterSpacingSave) {
+      clearTimeout(pendingLetterSpacingSave);
+      pendingLetterSpacingSave = null;
+      await persistLetterSpacing();
+    }
     if (pendingEditorSave) {
       clearTimeout(pendingEditorSave);
       pendingEditorSave = null;
@@ -238,6 +278,11 @@ export function mountActions(ctx: UiContext): void {
   };
 
   const runRedo = async () => {
+    if (pendingLetterSpacingSave) {
+      clearTimeout(pendingLetterSpacingSave);
+      pendingLetterSpacingSave = null;
+      await persistLetterSpacing();
+    }
     if (pendingEditorSave) {
       clearTimeout(pendingEditorSave);
       pendingEditorSave = null;
@@ -253,7 +298,7 @@ export function mountActions(ctx: UiContext): void {
   };
 
   window.onbeforeunload = () => {
-    if (state.autosaveDirty || state.autosaveSaving || pendingEditorSave) {
+    if (state.autosaveDirty || state.autosaveSaving || pendingEditorSave || pendingLetterSpacingSave) {
       return "Hay cambios de glifos pendientes de guardar.";
     }
     return null;
@@ -294,6 +339,7 @@ export function mountActions(ctx: UiContext): void {
           state.editMoveX = 0;
           state.editMoveY = 0;
           state.editScale = 1;
+          syncEditorViewSettingsFromTypeface();
         } else if (vm.error) {
           setStatus("error", `${vm.error.code}: ${vm.error.message}`);
         }
@@ -520,6 +566,7 @@ export function mountActions(ctx: UiContext): void {
         state.editMoveX = 0;
         state.editMoveY = 0;
         state.editScale = 1;
+        syncEditorViewSettingsFromTypeface();
         setStatus("success", "Glifos cargados.");
       } else if (vm.error) {
         setStatus("error", `${vm.error.code}: ${vm.error.message}`);
@@ -575,6 +622,48 @@ export function mountActions(ctx: UiContext): void {
     };
   }
 
+  const specimenLetterSpacingInput = document.getElementById("specimenLetterSpacingInput") as HTMLInputElement | null;
+  if (specimenLetterSpacingInput) {
+    specimenLetterSpacingInput.oninput = () => {
+      const value = Math.round(parseNumberInput("specimenLetterSpacingInput", 0));
+      state.specimenLetterSpacing = Math.max(-1000, Math.min(1000, value));
+      if (pendingLetterSpacingSave) {
+        clearTimeout(pendingLetterSpacingSave);
+        pendingLetterSpacingSave = null;
+      }
+      pendingLetterSpacingSave = setTimeout(() => {
+        pendingLetterSpacingSave = null;
+        void persistLetterSpacing();
+      }, 350);
+      render();
+    };
+  }
+
+  const setSpecimenZoom = (zoom: 100 | 75 | 50 | 25): void => {
+    state.specimenZoomPercent = zoom;
+    render();
+  };
+
+  const zoom100Btn = document.getElementById("zoom100Btn") as HTMLButtonElement | null;
+  if (zoom100Btn) {
+    zoom100Btn.onclick = () => setSpecimenZoom(100);
+  }
+
+  const zoom75Btn = document.getElementById("zoom75Btn") as HTMLButtonElement | null;
+  if (zoom75Btn) {
+    zoom75Btn.onclick = () => setSpecimenZoom(75);
+  }
+
+  const zoom50Btn = document.getElementById("zoom50Btn") as HTMLButtonElement | null;
+  if (zoom50Btn) {
+    zoom50Btn.onclick = () => setSpecimenZoom(50);
+  }
+
+  const zoom25Btn = document.getElementById("zoom25Btn") as HTMLButtonElement | null;
+  if (zoom25Btn) {
+    zoom25Btn.onclick = () => setSpecimenZoom(25);
+  }
+
   document.querySelectorAll<SVGGElement>("#specimenCanvas g[data-run-index]").forEach((glyphNode) => {
     glyphNode.onclick = () => {
       state.selectedRunIndex = Number(glyphNode.dataset.runIndex ?? "0");
@@ -615,8 +704,9 @@ export function mountActions(ctx: UiContext): void {
 
     specimenCanvas.onpointermove = (event) => {
       if (!drag || drag.pointerId !== event.pointerId) return;
-      const dx = event.clientX - drag.startX;
-      const dy = event.clientY - drag.startY;
+      const zoomFactor = Math.max(0.25, Math.min(1, state.specimenZoomPercent / 100));
+      const dx = (event.clientX - drag.startX) / zoomFactor;
+      const dy = (event.clientY - drag.startY) / zoomFactor;
       const snapDisabled = event.shiftKey;
       if (drag.handle === "scale") {
         const scaleDelta = 1 + (dx - dy) / 300;
@@ -723,6 +813,7 @@ export function mountActions(ctx: UiContext): void {
       });
       if (vm.status === "success") {
         await app.ui.screens.editorGlifos.loadTypeface(pid);
+        syncEditorViewSettingsFromTypeface();
         setStatus("success", vm.data?.lastOperation ?? "Unicode asignado.");
       }
       else if (vm.error) setStatus("error", `${vm.error.code}: ${vm.error.message}`);
@@ -742,6 +833,7 @@ export function mountActions(ctx: UiContext): void {
       });
       if (vm.status === "success") {
         await app.ui.screens.editorGlifos.loadTypeface(pid);
+        syncEditorViewSettingsFromTypeface();
         setStatus("success", vm.data?.lastOperation ?? "Metricas actualizadas.");
       }
       else if (vm.error) setStatus("error", `${vm.error.code}: ${vm.error.message}`);
@@ -768,6 +860,7 @@ export function mountActions(ctx: UiContext): void {
       });
       if (vm.status === "success") {
         await app.ui.screens.editorGlifos.loadTypeface(pid);
+        syncEditorViewSettingsFromTypeface();
         setStatus("success", vm.data?.lastOperation ?? "Outline actualizado.");
       }
       else if (vm.error) setStatus("error", `${vm.error.code}: ${vm.error.message}`);

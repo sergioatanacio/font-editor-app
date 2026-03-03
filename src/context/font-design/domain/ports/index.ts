@@ -62,6 +62,7 @@ export interface TypefaceSnapshot {
     styleName: string;
     designer?: string;
     version?: string;
+    letterSpacing?: number;
   };
   metrics: {
     unitsPerEm: number;
