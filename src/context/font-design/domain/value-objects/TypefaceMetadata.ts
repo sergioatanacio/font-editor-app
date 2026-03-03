@@ -7,6 +7,7 @@ export interface TypefaceMetadataInput {
   designer?: string;
   version?: string;
   letterSpacing?: number;
+  kerningPairs?: Record<string, number>;
 }
 
 export class TypefaceMetadata {
@@ -16,6 +17,7 @@ export class TypefaceMetadata {
     readonly designer?: string,
     readonly version?: string,
     readonly letterSpacing = 0,
+    readonly kerningPairs: Readonly<Record<string, number>> = {},
   ) {}
 
   static create(input: TypefaceMetadataInput): Result<TypefaceMetadata, DomainError> {
@@ -43,6 +45,43 @@ export class TypefaceMetadata {
       };
     }
     const letterSpacing = Math.max(-1000, Math.min(1000, Math.round(rawLetterSpacing)));
+    const rawKerningPairs = input.kerningPairs ?? {};
+    if (typeof rawKerningPairs !== "object" || Array.isArray(rawKerningPairs)) {
+      return {
+        ok: false,
+        error: new DomainError({
+          code: "INVALID_TYPEFACE_METADATA",
+          message: "kerningPairs debe ser un objeto key/value.",
+        }),
+      };
+    }
+
+    const kerningPairs: Record<string, number> = {};
+    for (const [key, rawValue] of Object.entries(rawKerningPairs)) {
+      const pairKey = key.trim();
+      if (!pairKey) {
+        return {
+          ok: false,
+          error: new DomainError({
+            code: "INVALID_TYPEFACE_METADATA",
+            message: "kerningPairs contiene una clave vacia.",
+          }),
+        };
+      }
+      if (!Number.isFinite(rawValue)) {
+        return {
+          ok: false,
+          error: new DomainError({
+            code: "INVALID_TYPEFACE_METADATA",
+            message: "Todos los valores de kerningPairs deben ser numeros finitos.",
+          }),
+        };
+      }
+      const value = Math.max(-1000, Math.min(1000, Math.round(rawValue)));
+      if (value !== 0) {
+        kerningPairs[pairKey] = value;
+      }
+    }
 
     return {
       ok: true,
@@ -52,6 +91,7 @@ export class TypefaceMetadata {
         input.designer?.trim() || undefined,
         input.version?.trim() || undefined,
         letterSpacing,
+        kerningPairs,
       ),
     };
   }

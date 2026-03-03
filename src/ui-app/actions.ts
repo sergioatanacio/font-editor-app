@@ -2,14 +2,15 @@ import type { UiRoute } from "../context/font-design/presentation/ui/routing/UiR
 import type { UiContext } from "./types";
 import { htmlEscape } from "./utils";
 import { applyTransformToOutline } from "./outlineTransform";
-import { outlineBounds } from "./specimen";
+import { layoutSpecimen, outlineBounds } from "./specimen";
 import type { GlyphOutlineSnapshot, GlyphSnapshot } from "../context/font-design/domain/ports";
 import { pushHistory, redoHistory, undoHistory } from "./history";
 import { snapScale, snapValue } from "./snap";
 import type { GlyphEditHistoryItem } from "./types";
+import { clampKerningValue, getPairKerning, parsePairKey, removePairKerning, setPairKerning } from "./kerning";
 
 let pendingEditorSave: ReturnType<typeof setTimeout> | null = null;
-let pendingLetterSpacingSave: ReturnType<typeof setTimeout> | null = null;
+let pendingTypographySave: ReturnType<typeof setTimeout> | null = null;
 
 function findGlyphById(glyphs: readonly GlyphSnapshot[], glyphId: string): GlyphSnapshot | null {
   return glyphs.find((x) => x.id === glyphId) ?? null;
@@ -58,9 +59,69 @@ export function mountActions(ctx: UiContext): void {
     const model = app.ui.screens.editorGlifos.getState().data?.typeface;
     if (!model) return;
     state.specimenLetterSpacing = Math.max(-1000, Math.min(1000, Math.round(model.metadata.letterSpacing ?? 0)));
+    state.specimenKerningPairs = { ...(model.metadata.kerningPairs ?? {}) };
   };
 
-  const persistLetterSpacing = async (): Promise<void> => {
+  const currentLayout = () => {
+    const model = app.ui.screens.editorGlifos.getState().data?.typeface;
+    if (!model) return null;
+    return layoutSpecimen(model, state.specimenText, state.specimenLetterSpacing, state.specimenKerningPairs);
+  };
+
+  const normalizeKerningSelection = (): void => {
+    if (state.kerningPairLeftRunIndex == null || state.kerningPairRightRunIndex == null) {
+      state.kerningDraftValue = 0;
+      return;
+    }
+    const layout = currentLayout();
+    if (!layout) {
+      state.kerningPairLeftRunIndex = null;
+      state.kerningPairRightRunIndex = null;
+      state.kerningDraftValue = 0;
+      return;
+    }
+    const left = layout.items[state.kerningPairLeftRunIndex] ?? null;
+    const right = layout.items[state.kerningPairRightRunIndex] ?? null;
+    if (!left || !right || right.runIndex !== left.runIndex + 1 || right.lineIndex !== left.lineIndex) {
+      state.kerningPairLeftRunIndex = null;
+      state.kerningPairRightRunIndex = null;
+      state.kerningDraftValue = 0;
+      return;
+    }
+    state.kerningDraftValue = getPairKerning(state.specimenKerningPairs, left.glyphId, right.glyphId);
+  };
+
+  const selectKerningPair = (leftRunIndex: number, rightRunIndex: number): boolean => {
+    const layout = currentLayout();
+    if (!layout) {
+      return false;
+    }
+    const left = layout.items[leftRunIndex] ?? null;
+    const right = layout.items[rightRunIndex] ?? null;
+    if (!left || !right) {
+      return false;
+    }
+    if (right.runIndex !== left.runIndex + 1 || right.lineIndex !== left.lineIndex) {
+      return false;
+    }
+    state.kerningPairLeftRunIndex = left.runIndex;
+    state.kerningPairRightRunIndex = right.runIndex;
+    state.kerningDraftValue = getPairKerning(state.specimenKerningPairs, left.glyphId, right.glyphId);
+    return true;
+  };
+
+  const scheduleTypographySave = () => {
+    if (pendingTypographySave) {
+      clearTimeout(pendingTypographySave);
+      pendingTypographySave = null;
+    }
+    pendingTypographySave = setTimeout(() => {
+      pendingTypographySave = null;
+      void persistTypographySettings();
+    }, 350);
+  };
+
+  const persistTypographySettings = async (): Promise<void> => {
     const pid = ensureProjectId(); if (!pid) return;
     const model = app.ui.screens.editorGlifos.getState().data?.typeface;
     if (!model) return;
@@ -71,6 +132,7 @@ export function mountActions(ctx: UiContext): void {
       designer: model.metadata.designer,
       version: model.metadata.version,
       letterSpacing: state.specimenLetterSpacing,
+      kerningPairs: state.specimenKerningPairs,
     });
     if (!saved.ok) {
       setStatus("error", `${saved.error.code}: ${saved.error.message}`);
@@ -79,7 +141,8 @@ export function mountActions(ctx: UiContext): void {
     }
     await app.ui.screens.editorGlifos.loadTypeface(pid);
     syncEditorViewSettingsFromTypeface();
-    syncEditorViewSettingsFromTypeface();
+    normalizeKerningSelection();
+    normalizeKerningSelection();
   };
 
   const persistGlyphState = async (
@@ -206,10 +269,10 @@ export function mountActions(ctx: UiContext): void {
   };
 
   const flushPendingEditorSave = async (): Promise<void> => {
-    if (pendingLetterSpacingSave) {
-      clearTimeout(pendingLetterSpacingSave);
-      pendingLetterSpacingSave = null;
-      await persistLetterSpacing();
+    if (pendingTypographySave) {
+      clearTimeout(pendingTypographySave);
+      pendingTypographySave = null;
+      await persistTypographySettings();
     }
     if (pendingEditorSave) {
       clearTimeout(pendingEditorSave);
@@ -258,10 +321,10 @@ export function mountActions(ctx: UiContext): void {
   };
 
   const runUndo = async () => {
-    if (pendingLetterSpacingSave) {
-      clearTimeout(pendingLetterSpacingSave);
-      pendingLetterSpacingSave = null;
-      await persistLetterSpacing();
+    if (pendingTypographySave) {
+      clearTimeout(pendingTypographySave);
+      pendingTypographySave = null;
+      await persistTypographySettings();
     }
     if (pendingEditorSave) {
       clearTimeout(pendingEditorSave);
@@ -278,10 +341,10 @@ export function mountActions(ctx: UiContext): void {
   };
 
   const runRedo = async () => {
-    if (pendingLetterSpacingSave) {
-      clearTimeout(pendingLetterSpacingSave);
-      pendingLetterSpacingSave = null;
-      await persistLetterSpacing();
+    if (pendingTypographySave) {
+      clearTimeout(pendingTypographySave);
+      pendingTypographySave = null;
+      await persistTypographySettings();
     }
     if (pendingEditorSave) {
       clearTimeout(pendingEditorSave);
@@ -298,7 +361,7 @@ export function mountActions(ctx: UiContext): void {
   };
 
   window.onbeforeunload = () => {
-    if (state.autosaveDirty || state.autosaveSaving || pendingEditorSave || pendingLetterSpacingSave) {
+    if (state.autosaveDirty || state.autosaveSaving || pendingEditorSave || pendingTypographySave) {
       return "Hay cambios de glifos pendientes de guardar.";
     }
     return null;
@@ -340,6 +403,7 @@ export function mountActions(ctx: UiContext): void {
           state.editMoveY = 0;
           state.editScale = 1;
           syncEditorViewSettingsFromTypeface();
+          normalizeKerningSelection();
         } else if (vm.error) {
           setStatus("error", `${vm.error.code}: ${vm.error.message}`);
         }
@@ -567,6 +631,7 @@ export function mountActions(ctx: UiContext): void {
         state.editMoveY = 0;
         state.editScale = 1;
         syncEditorViewSettingsFromTypeface();
+        normalizeKerningSelection();
         setStatus("success", "Glifos cargados.");
       } else if (vm.error) {
         setStatus("error", `${vm.error.code}: ${vm.error.message}`);
@@ -618,6 +683,7 @@ export function mountActions(ctx: UiContext): void {
   if (specimenTextInput) {
     specimenTextInput.oninput = () => {
       state.specimenText = specimenTextInput.value;
+      normalizeKerningSelection();
       render();
     };
   }
@@ -627,14 +693,20 @@ export function mountActions(ctx: UiContext): void {
     specimenLetterSpacingInput.oninput = () => {
       const value = Math.round(parseNumberInput("specimenLetterSpacingInput", 0));
       state.specimenLetterSpacing = Math.max(-1000, Math.min(1000, value));
-      if (pendingLetterSpacingSave) {
-        clearTimeout(pendingLetterSpacingSave);
-        pendingLetterSpacingSave = null;
+      scheduleTypographySave();
+      render();
+    };
+  }
+
+  const kerningModeToggle = document.getElementById("kerningModeToggle") as HTMLInputElement | null;
+  if (kerningModeToggle) {
+    kerningModeToggle.onchange = () => {
+      state.kerningMode = kerningModeToggle.checked;
+      if (!state.kerningMode) {
+        state.kerningPairLeftRunIndex = null;
+        state.kerningPairRightRunIndex = null;
+        state.kerningDraftValue = 0;
       }
-      pendingLetterSpacingSave = setTimeout(() => {
-        pendingLetterSpacingSave = null;
-        void persistLetterSpacing();
-      }, 350);
       render();
     };
   }
@@ -666,11 +738,131 @@ export function mountActions(ctx: UiContext): void {
 
   document.querySelectorAll<SVGGElement>("#specimenCanvas g[data-run-index]").forEach((glyphNode) => {
     glyphNode.onclick = () => {
-      state.selectedRunIndex = Number(glyphNode.dataset.runIndex ?? "0");
+      const clickedRunIndex = Number(glyphNode.dataset.runIndex ?? "0");
+      state.selectedRunIndex = clickedRunIndex;
       state.selectedGlyphId = glyphNode.dataset.glyphId ?? "";
       state.editMoveX = 0;
       state.editMoveY = 0;
       state.editScale = 1;
+      if (state.kerningMode) {
+        const left = state.kerningPairLeftRunIndex;
+        const right = state.kerningPairRightRunIndex;
+        if (left == null || (left != null && right != null)) {
+          state.kerningPairLeftRunIndex = clickedRunIndex;
+          state.kerningPairRightRunIndex = null;
+          state.kerningDraftValue = 0;
+        } else {
+          if (clickedRunIndex === left) {
+            state.kerningPairRightRunIndex = null;
+            state.kerningDraftValue = 0;
+            render();
+            return;
+          }
+          const orderedLeft = Math.min(left, clickedRunIndex);
+          const orderedRight = Math.max(left, clickedRunIndex);
+          const ok = selectKerningPair(orderedLeft, orderedRight);
+          if (!ok) {
+            state.kerningPairLeftRunIndex = clickedRunIndex;
+            state.kerningPairRightRunIndex = null;
+            state.kerningDraftValue = 0;
+            setStatus("warning", "Selecciona un par adyacente en la misma linea para kerning.");
+          }
+        }
+      }
+      render();
+    };
+  });
+
+  const applyKerningValueToActivePair = (rawValue: number) => {
+    const layout = currentLayout();
+    const leftIndex = state.kerningPairLeftRunIndex;
+    const rightIndex = state.kerningPairRightRunIndex;
+    if (!layout || leftIndex == null || rightIndex == null) {
+      return;
+    }
+    const left = layout.items[leftIndex] ?? null;
+    const right = layout.items[rightIndex] ?? null;
+    if (!left || !right || right.runIndex !== left.runIndex + 1 || right.lineIndex !== left.lineIndex) {
+      return;
+    }
+    const value = clampKerningValue(rawValue);
+    state.specimenKerningPairs = setPairKerning(state.specimenKerningPairs, left.glyphId, right.glyphId, value);
+    state.kerningDraftValue = getPairKerning(state.specimenKerningPairs, left.glyphId, right.glyphId);
+    scheduleTypographySave();
+  };
+
+  const kerningPairValueInput = document.getElementById("kerningPairValueInput") as HTMLInputElement | null;
+  if (kerningPairValueInput) {
+    kerningPairValueInput.oninput = () => {
+      applyKerningValueToActivePair(Number(kerningPairValueInput.value));
+      render();
+    };
+  }
+
+  const kerningPairValueRange = document.getElementById("kerningPairValueRange") as HTMLInputElement | null;
+  if (kerningPairValueRange) {
+    kerningPairValueRange.oninput = () => {
+      applyKerningValueToActivePair(Number(kerningPairValueRange.value));
+      render();
+    };
+  }
+
+  const resetKerningPairBtn = document.getElementById("resetKerningPairBtn") as HTMLButtonElement | null;
+  if (resetKerningPairBtn) {
+    resetKerningPairBtn.onclick = () => {
+      applyKerningValueToActivePair(0);
+      render();
+    };
+  }
+
+  const removeKerningPairBtn = document.getElementById("removeKerningPairBtn") as HTMLButtonElement | null;
+  if (removeKerningPairBtn) {
+    removeKerningPairBtn.onclick = () => {
+      const layout = currentLayout();
+      const leftIndex = state.kerningPairLeftRunIndex;
+      const rightIndex = state.kerningPairRightRunIndex;
+      if (!layout || leftIndex == null || rightIndex == null) {
+        return;
+      }
+      const left = layout.items[leftIndex] ?? null;
+      const right = layout.items[rightIndex] ?? null;
+      if (!left || !right) {
+        return;
+      }
+      state.specimenKerningPairs = removePairKerning(state.specimenKerningPairs, left.glyphId, right.glyphId);
+      state.kerningDraftValue = 0;
+      scheduleTypographySave();
+      render();
+    };
+  }
+
+  document.querySelectorAll<HTMLButtonElement>(".pair-chip[data-pair-key]").forEach((chip) => {
+    chip.onclick = () => {
+      const key = chip.dataset.pairKey ?? "";
+      const parsed = parsePairKey(key);
+      if (!parsed) {
+        return;
+      }
+      const layout = currentLayout();
+      if (!layout) {
+        return;
+      }
+      for (let i = 0; i + 1 < layout.items.length; i += 1) {
+        const left = layout.items[i];
+        const right = layout.items[i + 1];
+        if (left.lineIndex !== right.lineIndex || right.runIndex !== left.runIndex + 1) {
+          continue;
+        }
+        if (left.glyphId === parsed.leftGlyphId && right.glyphId === parsed.rightGlyphId) {
+          state.kerningMode = true;
+          state.selectedRunIndex = left.runIndex;
+          state.selectedGlyphId = left.glyphId;
+          selectKerningPair(left.runIndex, right.runIndex);
+          render();
+          return;
+        }
+      }
+      setStatus("warning", "Ese par no aparece actualmente en el texto de prueba.");
       render();
     };
   });
@@ -680,6 +872,9 @@ export function mountActions(ctx: UiContext): void {
     let drag: { pointerId: number; startX: number; startY: number; baseX: number; baseY: number; baseScale: number; handle: "move" | "scale" } | null = null;
 
     specimenCanvas.onpointerdown = (event) => {
+      if (state.kerningMode) {
+        return;
+      }
       const target = event.target as Element | null;
       const group = target?.closest("g[data-run-index]") as SVGGElement | null;
       if (!group) return;
@@ -814,6 +1009,7 @@ export function mountActions(ctx: UiContext): void {
       if (vm.status === "success") {
         await app.ui.screens.editorGlifos.loadTypeface(pid);
         syncEditorViewSettingsFromTypeface();
+        normalizeKerningSelection();
         setStatus("success", vm.data?.lastOperation ?? "Unicode asignado.");
       }
       else if (vm.error) setStatus("error", `${vm.error.code}: ${vm.error.message}`);
@@ -834,6 +1030,7 @@ export function mountActions(ctx: UiContext): void {
       if (vm.status === "success") {
         await app.ui.screens.editorGlifos.loadTypeface(pid);
         syncEditorViewSettingsFromTypeface();
+        normalizeKerningSelection();
         setStatus("success", vm.data?.lastOperation ?? "Metricas actualizadas.");
       }
       else if (vm.error) setStatus("error", `${vm.error.code}: ${vm.error.message}`);
@@ -861,6 +1058,7 @@ export function mountActions(ctx: UiContext): void {
       if (vm.status === "success") {
         await app.ui.screens.editorGlifos.loadTypeface(pid);
         syncEditorViewSettingsFromTypeface();
+        normalizeKerningSelection();
         setStatus("success", vm.data?.lastOperation ?? "Outline actualizado.");
       }
       else if (vm.error) setStatus("error", `${vm.error.code}: ${vm.error.message}`);

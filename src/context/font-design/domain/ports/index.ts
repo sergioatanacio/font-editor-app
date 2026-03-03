@@ -63,6 +63,7 @@ export interface TypefaceSnapshot {
     designer?: string;
     version?: string;
     letterSpacing?: number;
+    kerningPairs?: Record<string, number>;
   };
   metrics: {
     unitsPerEm: number;

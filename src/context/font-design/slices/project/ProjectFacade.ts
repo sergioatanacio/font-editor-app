@@ -35,6 +35,7 @@ export class ProjectFacade {
     designer?: string;
     version?: string;
     letterSpacing?: number;
+    kerningPairs?: Record<string, number>;
   }) {
     return this.updateTypefaceMetadataUseCase.execute(input);
   }

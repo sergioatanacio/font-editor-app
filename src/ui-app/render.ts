@@ -4,6 +4,7 @@ import { htmlEscape } from "./utils";
 import type { GlyphOutlineSnapshot } from "../context/font-design/domain/ports";
 import { applyTransformToOutline } from "./outlineTransform";
 import { layoutSpecimen, outlineBounds } from "./specimen";
+import { getPairKerning, pairKey } from "./kerning";
 
 function buildPathData(outline?: GlyphOutlineSnapshot): string {
   if (!outline || outline.contours.length === 0) {
@@ -210,7 +211,45 @@ function renderEditorGlifos(app: FontDesignApp, state: AppState): string {
     </div>`;
   }
 
-  const layout = layoutSpecimen(typeface, state.specimenText, state.specimenLetterSpacing);
+  const layout = layoutSpecimen(typeface, state.specimenText, state.specimenLetterSpacing, state.specimenKerningPairs);
+  const pairLeft = state.kerningPairLeftRunIndex == null ? null : (layout.items[state.kerningPairLeftRunIndex] ?? null);
+  const pairRight = state.kerningPairRightRunIndex == null ? null : (layout.items[state.kerningPairRightRunIndex] ?? null);
+  const hasActiveKerningPair =
+    !!pairLeft &&
+    !!pairRight &&
+    pairRight.runIndex === pairLeft.runIndex + 1 &&
+    pairRight.lineIndex === pairLeft.lineIndex;
+  const activeKerningPairKey = hasActiveKerningPair ? pairKey(pairLeft.glyphId, pairRight.glyphId) : "";
+  const activeKerningValue = hasActiveKerningPair
+    ? getPairKerning(state.specimenKerningPairs, pairLeft.glyphId, pairRight.glyphId)
+    : 0;
+  const activeKerningLabel = hasActiveKerningPair
+    ? `${pairLeft.char} (${pairLeft.glyphId}) + ${pairRight.char} (${pairRight.glyphId})`
+    : "Sin par seleccionado";
+  const pairSummaryMap = new Map<string, { leftGlyphId: string; rightGlyphId: string; count: number; value: number }>();
+  for (let i = 0; i + 1 < layout.items.length; i += 1) {
+    const left = layout.items[i];
+    const right = layout.items[i + 1];
+    if (left.lineIndex !== right.lineIndex || right.runIndex !== left.runIndex + 1) {
+      continue;
+    }
+    const key = pairKey(left.glyphId, right.glyphId);
+    const prev = pairSummaryMap.get(key);
+    if (prev) {
+      prev.count += 1;
+      continue;
+    }
+    pairSummaryMap.set(key, {
+      leftGlyphId: left.glyphId,
+      rightGlyphId: right.glyphId,
+      count: 1,
+      value: getPairKerning(state.specimenKerningPairs, left.glyphId, right.glyphId),
+    });
+  }
+  const pairSummary = Array.from(pairSummaryMap.entries())
+    .map(([key, value]) => ({ key, ...value }))
+    .sort((a, b) => Math.abs(b.value) - Math.abs(a.value) || a.key.localeCompare(b.key))
+    .slice(0, 8);
   const zoomPercent = Math.max(25, Math.min(100, state.specimenZoomPercent));
   const zoomFactor = zoomPercent / 100;
   const displayWidth = Math.max(1, Math.round(layout.width * zoomFactor));
@@ -226,13 +265,20 @@ function renderEditorGlifos(app: FontDesignApp, state: AppState): string {
 
   const glyphSvg = layout.items.map((item, index) => {
     const isSelected = !!selected && selected.runIndex === item.runIndex;
+    const isKerningLeft = state.kerningMode && pairLeft?.runIndex === item.runIndex;
+    const isKerningRight = state.kerningMode && pairRight?.runIndex === item.runIndex;
     const transformedOutline = isSelected
       ? applyTransformToOutline(item.outline, { moveX: state.editMoveX, moveY: state.editMoveY, scale: state.editScale }, pivotX, pivotY)
       : item.outline;
     const transformedBounds = isSelected ? outlineBounds(transformedOutline) : null;
     const d = buildPathDataRaw(transformedOutline);
     if (!d) return "";
-    const css = isSelected ? "specimen-glyph selected" : "specimen-glyph";
+    const css = [
+      "specimen-glyph",
+      isSelected ? "selected" : "",
+      isKerningLeft ? "kerning-left" : "",
+      isKerningRight ? "kerning-right" : "",
+    ].filter(Boolean).join(" ");
     const handles = isSelected && transformedBounds
       ? `
         <rect class="glyph-box" x="${transformedBounds.xMin}" y="${transformedBounds.yMin}" width="${Math.max(1, transformedBounds.xMax - transformedBounds.xMin)}" height="${Math.max(1, transformedBounds.yMax - transformedBounds.yMin)}"></rect>
@@ -240,7 +286,7 @@ function renderEditorGlifos(app: FontDesignApp, state: AppState): string {
         <circle class="glyph-handle scale" data-handle="scale" data-run-index="${index}" cx="${transformedBounds.xMax}" cy="${transformedBounds.yMax}" r="14"></circle>
       `
       : "";
-    return `<g class="${css}" data-run-index="${index}" data-glyph-id="${htmlEscape(item.glyphId)}" transform="translate(${item.x},${item.baselineY}) scale(1,-1)"><path d="${htmlEscape(d)}"/>${handles}</g>`;
+    return `<g class="${css}" data-run-index="${index}" data-line-index="${item.lineIndex}" data-glyph-id="${htmlEscape(item.glyphId)}" transform="translate(${item.x},${item.baselineY}) scale(1,-1)"><path d="${htmlEscape(d)}"/>${handles}</g>`;
   }).join("");
 
   return `
@@ -256,6 +302,9 @@ function renderEditorGlifos(app: FontDesignApp, state: AppState): string {
     </div>
     <div class="field"><label>Texto de prueba</label><input id="specimenTextInput" value="${htmlEscape(state.specimenText)}" /></div>
     <div class="field"><label>Interletrado</label><input id="specimenLetterSpacingInput" type="number" step="1" value="${state.specimenLetterSpacing}" /></div>
+    <div class="actions">
+      <label><input id="kerningModeToggle" type="checkbox" ${state.kerningMode ? "checked" : ""}/> Modo kerning por par</label>
+    </div>
     <div class="actions">
       <button class="secondary" id="zoom100Btn" ${zoomPercent === 100 ? "disabled" : ""}>100%</button>
       <button class="secondary" id="zoom75Btn" ${zoomPercent === 75 ? "disabled" : ""}>75%</button>
@@ -285,6 +334,19 @@ function renderEditorGlifos(app: FontDesignApp, state: AppState): string {
           <button class="secondary" id="resetGlyphTransformBtn">Reset</button>
           <button class="primary" id="applyGlyphTransformNowBtn">Aplicar ahora</button>
         </div>
+        <hr/>
+        <strong>Kerning</strong><br/>
+        <small>En modo kerning: haz clic en 2 letras consecutivas para seleccionar el par.</small>
+        <small>Par activo: ${htmlEscape(activeKerningLabel)}</small>
+        <small>Clave: ${htmlEscape(activeKerningPairKey || "-")}</small>
+        <div class="field"><label>Valor par</label><input id="kerningPairValueInput" type="number" step="1" min="-1000" max="1000" value="${activeKerningValue}" ${hasActiveKerningPair ? "" : "disabled"} /></div>
+        <div class="field"><label>Ajuste rapido</label><input id="kerningPairValueRange" type="range" min="-300" max="300" step="1" value="${activeKerningValue}" ${hasActiveKerningPair ? "" : "disabled"} /></div>
+        <div class="actions">
+          <button class="secondary" id="resetKerningPairBtn" ${hasActiveKerningPair ? "" : "disabled"}>Reset par</button>
+          <button class="secondary" id="removeKerningPairBtn" ${hasActiveKerningPair ? "" : "disabled"}>Eliminar par</button>
+        </div>
+        <small>Pares detectados: ${pairSummary.length}</small>
+        <div class="pair-chips">${pairSummary.map((item) => `<button class="pair-chip ${item.key === activeKerningPairKey ? "active" : ""}" data-pair-key="${htmlEscape(item.key)}">${htmlEscape(item.leftGlyphId)}+${htmlEscape(item.rightGlyphId)} (${item.value}) x${item.count}</button>`).join("") || "<small>No hay pares en la muestra.</small>"}</div>
       </div>
     </div>
     <hr/>

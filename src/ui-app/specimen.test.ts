@@ -38,6 +38,14 @@ function fixtureTypeface(): TypefaceSnapshot {
         outline: TRIANGLE,
         unicodeCodePoint: 65,
       },
+      {
+        id: "V",
+        name: "V",
+        kind: "base",
+        metrics: { advanceWidth: 620, leftSideBearing: 5 },
+        outline: TRIANGLE,
+        unicodeCodePoint: 86,
+      },
     ],
   };
 }
@@ -65,6 +73,17 @@ describe("specimen layout", () => {
     const expandedDelta = (expanded.items[1]?.x ?? 0) - (expanded.items[0]?.x ?? 0);
     expect(compactDelta).toBe(normalDelta - 80);
     expect(expandedDelta).toBe(normalDelta + 120);
+  });
+
+  it("aplica kerning por par entre glifos adyacentes", () => {
+    const base = layoutSpecimen(fixtureTypeface(), "AVA", 0, {});
+    const kerned = layoutSpecimen(fixtureTypeface(), "AVA", 0, { "A::V": -70 });
+    const deltaBase = (base.items[1]?.x ?? 0) - (base.items[0]?.x ?? 0);
+    const deltaKerned = (kerned.items[1]?.x ?? 0) - (kerned.items[0]?.x ?? 0);
+    const secondPairBase = (base.items[2]?.x ?? 0) - (base.items[1]?.x ?? 0);
+    const secondPairKerned = (kerned.items[2]?.x ?? 0) - (kerned.items[1]?.x ?? 0);
+    expect(deltaKerned).toBe(deltaBase - 70);
+    expect(secondPairKerned).toBe(secondPairBase);
   });
 
   it("calcula bounds del outline", () => {

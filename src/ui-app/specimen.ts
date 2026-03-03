@@ -1,7 +1,10 @@
 import type { GlyphOutlineSnapshot, GlyphSnapshot, TypefaceSnapshot } from "../context/font-design/domain/ports";
+import { getPairKerning } from "./kerning";
 
 export interface SpecimenItem {
   runIndex: number;
+  lineIndex: number;
+  sourceIndex: number;
   glyphId: string;
   codePoint: number;
   char: string;
@@ -42,7 +45,12 @@ function resolveGlyph(typeface: TypefaceSnapshot, cp: number, unicodeMap: Map<nu
   return unicodeMap.get(cp) ?? fallbackGlyph(typeface);
 }
 
-export function layoutSpecimen(typeface: TypefaceSnapshot, text: string, letterSpacing = 0): SpecimenLayout {
+export function layoutSpecimen(
+  typeface: TypefaceSnapshot,
+  text: string,
+  letterSpacing = 0,
+  kerningPairs: Readonly<Record<string, number>> = {},
+): SpecimenLayout {
   const unicodeMap = glyphByUnicode(typeface);
   const unitsPerEm = typeface.metrics.unitsPerEm;
   const ascender = typeface.metrics.ascender;
@@ -56,6 +64,7 @@ export function layoutSpecimen(typeface: TypefaceSnapshot, text: string, letterS
   let x = startX;
   let y = baselineTop + ascender;
   let runIndex = 0;
+  let lineIndex = 0;
   let maxLineWidth = 0;
 
   for (let i = 0; i < chars.length; i += 1) {
@@ -64,6 +73,7 @@ export function layoutSpecimen(typeface: TypefaceSnapshot, text: string, letterS
       maxLineWidth = Math.max(maxLineWidth, x);
       x = startX;
       y += lineHeight;
+      lineIndex += 1;
       continue;
     }
     const cp = ch.codePointAt(0) ?? 0x3f;
@@ -72,6 +82,8 @@ export function layoutSpecimen(typeface: TypefaceSnapshot, text: string, letterS
     const advanceWidth = Math.max(1, Math.round(glyph.metrics.advanceWidth));
     items.push({
       runIndex,
+      lineIndex,
+      sourceIndex: i,
       glyphId: glyph.id,
       codePoint: cp,
       char: ch,
@@ -81,7 +93,15 @@ export function layoutSpecimen(typeface: TypefaceSnapshot, text: string, letterS
       outline: glyph.outline,
     });
     const hasNextInSameLine = i + 1 < chars.length && chars[i + 1] !== "\n";
-    x += advanceWidth + (hasNextInSameLine ? letterSpacing : 0);
+    let pairKerning = 0;
+    if (hasNextInSameLine) {
+      const nextCp = chars[i + 1]?.codePointAt(0) ?? 0x3f;
+      const nextGlyph = resolveGlyph(typeface, nextCp, unicodeMap);
+      if (nextGlyph) {
+        pairKerning = getPairKerning(kerningPairs, glyph.id, nextGlyph.id);
+      }
+    }
+    x += advanceWidth + (hasNextInSameLine ? letterSpacing + pairKerning : 0);
     runIndex += 1;
   }
 

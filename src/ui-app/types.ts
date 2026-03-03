@@ -31,6 +31,11 @@ export interface AppState {
   importSvgContent: string;
   specimenText: string;
   specimenLetterSpacing: number;
+  specimenKerningPairs: Record<string, number>;
+  kerningMode: boolean;
+  kerningPairLeftRunIndex: number | null;
+  kerningPairRightRunIndex: number | null;
+  kerningDraftValue: number;
   specimenZoomPercent: number;
   selectedRunIndex: number;
   selectedGlyphId: string;

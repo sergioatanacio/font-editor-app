@@ -98,6 +98,7 @@ export function toDomainTypeface(snapshot: TypefaceSnapshot): Result<Typeface, A
       designer: snapshot.metadata.designer,
       version: snapshot.metadata.version,
       letterSpacing: snapshot.metadata.letterSpacing,
+      kerningPairs: snapshot.metadata.kerningPairs,
     }),
   );
   if (!metadata.ok) return metadata;
@@ -130,6 +131,8 @@ export function toDomainTypeface(snapshot: TypefaceSnapshot): Result<Typeface, A
 }
 
 export function toTypefaceSnapshot(typeface: Typeface): TypefaceSnapshot {
+  const kerningPairs = { ...typeface.metadata.kerningPairs };
+  const hasKerningPairs = Object.keys(kerningPairs).length > 0;
   return {
     id: typeface.id.toString(),
     metadata: {
@@ -138,6 +141,7 @@ export function toTypefaceSnapshot(typeface: Typeface): TypefaceSnapshot {
       designer: typeface.metadata.designer,
       version: typeface.metadata.version,
       letterSpacing: typeface.metadata.letterSpacing,
+      kerningPairs: hasKerningPairs ? kerningPairs : undefined,
     },
     metrics: {
       unitsPerEm: typeface.metrics.unitsPerEm,

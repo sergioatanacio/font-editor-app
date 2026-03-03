@@ -53,6 +53,8 @@ button.secondary { background: #fff; border-color: var(--line); color: var(--ink
 .specimen-glyph { color: #27323a; cursor: pointer; }
 .specimen-glyph path { fill: currentColor; stroke: none; }
 .specimen-glyph.selected { color: #0c7c59; }
+.specimen-glyph.kerning-left { color: #0f7a67; }
+.specimen-glyph.kerning-right { color: #2f6fca; }
 .specimen-glyph .glyph-box { fill: none; stroke: #0c7c59; stroke-width: 10; stroke-dasharray: 28 18; pointer-events: none; }
 .specimen-glyph .glyph-handle { stroke: #0b5d43; stroke-width: 8; cursor: grab; }
 .specimen-glyph .glyph-handle.move { fill: #d9f2e8; }
@@ -61,6 +63,21 @@ button.secondary { background: #fff; border-color: var(--line); color: var(--ink
 .specimen-canvas .metric-line { stroke: #c5cdd3; stroke-width: 1; stroke-dasharray: 4 4; }
 .panel.mini { margin: 0; padding: 0.7rem; }
 .panel.mini label { display: block; margin-top: 0.35rem; }
+.pair-chips { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-top: 0.4rem; }
+.pair-chip {
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: #fff;
+  color: var(--ink-soft);
+  padding: 0.2rem 0.55rem;
+  font-size: 0.78rem;
+  cursor: pointer;
+}
+.pair-chip.active {
+  border-color: #86ccba;
+  background: var(--accent-soft);
+  color: var(--accent);
+}
 .autosave-chip { border: 1px solid var(--line); border-radius: 999px; padding: 0.2rem 0.55rem; font-size: 0.8rem; background: #fff; color: var(--ink-soft); }
 .autosave-chip.ok { border-color: #bde8d8; background: var(--accent-soft); color: var(--accent); }
 .autosave-chip.dirty { border-color: #f7dca3; background: var(--warn-soft); color: var(--warn); }

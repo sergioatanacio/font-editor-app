@@ -12,6 +12,7 @@ export interface UpdateTypefaceMetadataInput {
   designer?: string;
   version?: string;
   letterSpacing?: number;
+  kerningPairs?: Record<string, number>;
 }
 
 export interface UpdateTypefaceMetadataOutput {
@@ -50,6 +51,7 @@ export class UpdateTypefaceMetadataUseCase implements UseCase<UpdateTypefaceMeta
       designer: input.designer,
       version: input.version,
       letterSpacing: input.letterSpacing ?? typefaceResult.value.metadata.letterSpacing,
+      kerningPairs: input.kerningPairs ?? typefaceResult.value.metadata.kerningPairs,
     });
     if (!metadata.ok) {
       return { ok: false, error: fromDomainError(metadata.error) };
